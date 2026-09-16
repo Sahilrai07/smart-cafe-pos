@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useRef } from 'react';
-import { QRCodeSVG } from 'qrcode.react';
+import { ClientQRCode } from '@/components/common/ClientQRCode';
+import { useClientOrigin } from '@/lib/useClientOrigin';
 import { Restaurant, Table } from '@/types';
 import { Download, Printer, X, QrCode } from 'lucide-react';
 
@@ -19,11 +20,12 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({
   onClose,
 }) => {
   const qrRef = useRef<HTMLDivElement>(null);
+  const origin = useClientOrigin();
 
   if (!isOpen || !table) return null;
 
-  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://quick-bite-demo.vercel.app';
-  const qrUrl = `${origin}/r/${restaurant.slug}/t/${table.table_number}`;
+  const tablePath = `/r/${restaurant.slug}/t/${table.table_number}`;
+  const qrUrl = origin ? `${origin}${tablePath}` : tablePath;
 
   const handleDownload = () => {
     if (!qrRef.current) return;
@@ -90,8 +92,8 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({
 
               {/* QR Code SVG */}
               <div className="my-4 p-3 bg-white rounded-2xl shadow-sm inline-block border border-slate-200/80">
-                <QRCodeSVG
-                  value={qrUrl}
+                <ClientQRCode
+                  path={tablePath}
                   size={190}
                   level="H"
                   includeMargin={true}

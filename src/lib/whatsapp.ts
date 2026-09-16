@@ -44,7 +44,7 @@ export function buildBillWhatsAppUrl(params: {
   const currency = settings.currency || '₹';
   const cleanPhone = cleanPhoneNumber(customerPhone);
   const itemsText = formatOrderItemsForWhatsApp(items, currency);
-  const baseUrl = appBaseUrl || (typeof window !== 'undefined' ? window.location.origin : 'https://quick-bite-demo.vercel.app');
+  const baseUrl = appBaseUrl || (typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_APP_URL || ''));
   const birthdayClubLink = `${baseUrl}/r/${restaurant.slug}/birthday-club?phone=${encodeURIComponent(customerPhone)}&name=${encodeURIComponent(customerName)}`;
 
   let template = settings.bill_message_template || 

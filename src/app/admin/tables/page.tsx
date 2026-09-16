@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { cafeStore, subscribeToStore } from '@/lib/store';
 import { Table, Restaurant } from '@/types';
-import { QRCodeSVG } from 'qrcode.react';
+import { ClientQRCode } from '@/components/common/ClientQRCode';
+import { useClientOrigin } from '@/lib/useClientOrigin';
 import { QRCodeModal } from '@/components/admin/QRCodeModal';
 import {
   QrCode,
@@ -48,7 +49,7 @@ export default function AdminTablesPage() {
     setIsModalOpen(true);
   };
 
-  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://quick-bite-demo.vercel.app';
+  const origin = useClientOrigin();
 
   return (
     <div className="space-y-6">
@@ -84,7 +85,8 @@ export default function AdminTablesPage() {
       {/* Tables Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-5">
         {tables.map((table) => {
-          const tableUrl = `${origin}/r/${restaurant?.slug}/t/${table.table_number}`;
+          const tablePath = `/r/${restaurant?.slug}/t/${table.table_number}`;
+          const tableUrl = origin ? `${origin}${tablePath}` : tablePath;
           return (
             <div
               key={table.id}
@@ -108,18 +110,18 @@ export default function AdminTablesPage() {
               {/* QR Code SVG */}
               <div
                 onClick={() => handleOpenQR(table)}
-                className="p-3 bg-white rounded-2xl cursor-pointer shadow-md hover:scale-105 transition-transform"
+                className="p-3 bg-white rounded-2xl cursor-pointer shadow-md hover:scale-105 transition-transform inline-block"
                 title="Click to expand & download print format"
               >
-                <QRCodeSVG
-                  value={tableUrl}
+                <ClientQRCode
+                  path={tablePath}
                   size={140}
                   level="M"
                   includeMargin={true}
                 />
               </div>
 
-              <p className="text-[10px] text-slate-500 mt-3 font-mono truncate w-full">
+              <p className="text-[10px] text-slate-400 mt-3 font-mono truncate w-full">
                 {tableUrl}
               </p>
 
@@ -132,7 +134,7 @@ export default function AdminTablesPage() {
                   <span>Download</span>
                 </button>
                 <a
-                  href={tableUrl}
+                  href={tablePath}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="py-2 px-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs flex items-center justify-center gap-1 transition-colors"

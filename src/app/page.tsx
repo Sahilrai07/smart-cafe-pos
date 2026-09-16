@@ -2,7 +2,8 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { QRCodeSVG } from 'qrcode.react';
+import { ClientQRCode } from '@/components/common/ClientQRCode';
+import { useClientOrigin } from '@/lib/useClientOrigin';
 import {
   QrCode,
   UtensilsCrossed,
@@ -18,8 +19,9 @@ import {
 } from 'lucide-react';
 
 export default function HomePage() {
-  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://quick-bite-demo.vercel.app';
-  const table01Url = `${origin}/r/quick-bite/t/01`;
+  const origin = useClientOrigin();
+  const table01Path = '/r/quick-bite/t/01';
+  const table01DisplayUrl = origin ? `${origin}${table01Path}` : table01Path;
 
   return (
     <main className="min-h-screen bg-slate-950 text-white selection:bg-amber-500 selection:text-slate-950">
@@ -79,19 +81,19 @@ export default function HomePage() {
               <h2 className="text-base font-black text-white">Scan from your Phone</h2>
               <p className="text-xs text-slate-400 mt-0.5">Quick Bite Cafe • Table 01</p>
 
-              <div className="my-4 p-4 bg-white rounded-2xl shadow-md border border-slate-200">
-                <QRCodeSVG value={table01Url} size={180} level="M" />
+              <div className="my-4 p-4 bg-white rounded-2xl shadow-md border border-slate-200 inline-block">
+                <ClientQRCode path={table01Path} size={180} level="M" />
               </div>
 
               <span className="text-xs font-bold text-amber-400">
                 Point phone camera at screen to test
               </span>
-              <p className="text-[11px] text-slate-500 mt-1 max-w-xs">
-                Or click button below to open in new browser tab:
+              <p className="text-[11px] text-slate-400 mt-1 max-w-xs font-mono break-all">
+                {table01DisplayUrl}
               </p>
 
               <a
-                href={table01Url}
+                href={table01Path}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-3 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold flex items-center gap-1.5 transition-colors"
