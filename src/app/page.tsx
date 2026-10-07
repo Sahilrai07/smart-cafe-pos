@@ -2,39 +2,24 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ClientQRCode } from '@/components/common/ClientQRCode';
-import { useClientOrigin } from '@/lib/useClientOrigin';
 import { getStoredUser, CafeUser } from '@/lib/auth';
 import {
-  Coffee,
   QrCode,
   UtensilsCrossed,
-  Receipt,
-  Users,
   Cake,
-  Sparkles,
   ArrowRight,
   ShieldCheck,
-  CheckCircle2,
   ExternalLink,
   Lock,
   ChefHat,
   CreditCard,
   Coins,
-  TrendingUp,
   BarChart3,
-  ShoppingBag,
-  Bell,
-  Clock,
   ChevronDown,
-  MoreHorizontal,
-  Flame,
-  Check,
   Boxes,
 } from 'lucide-react';
 
 export default function HomePage() {
-  const origin = useClientOrigin();
   const [currentUser, setCurrentUser] = useState<CafeUser | null>(null);
 
   useEffect(() => {
@@ -42,7 +27,6 @@ export default function HomePage() {
   }, []);
 
   const demoQrPath = '/r/quick-bite/t/01';
-  const demoDisplayUrl = origin ? `${origin}${demoQrPath}` : demoQrPath;
 
   return (
     <div className="min-h-screen bg-[#08090D] text-[#EDE7DF] selection:bg-[#F59E0B]/30 selection:text-[#EDE7DF] font-sans antialiased overflow-x-hidden relative">
@@ -138,7 +122,7 @@ export default function HomePage() {
             ) : (
               <Link
                 href="/admin/login"
-                className="px-6 py-2.5 rounded-full bg-[#10121A] hover:bg-[#161924] border-2 border-[#F59E0B] text-[#F59E0B] hover:text-[#FBBF24] font-black text-xs uppercase tracking-wider shadow-[0_0_25px_rgba(245,158,11,0.4)] transition-all hover:scale-105 flex items-center gap-2 cursor-pointer"
+                className="px-6 py-2.5 rounded-full bg-[#0C0E15] hover:bg-[#141724] border border-[#F59E0B] text-[#F59E0B] hover:text-[#FBBF24] font-bold text-xs tracking-wider shadow-[0_0_22px_rgba(245,158,11,0.35)] transition-all hover:scale-105 flex items-center gap-2 cursor-pointer"
               >
                 <Lock className="w-3.5 h-3.5" />
                 <span>Cafe Owner Login</span>
@@ -149,165 +133,87 @@ export default function HomePage() {
       </header>
 
       {/* =========================================================================
-          HERO SECTION: THE TRUE MOCKUP COMPOSITION
-          (Centered Title Flanked by 3D Floating Glass Cards: Card 1, Card 2, Card 3)
+          HERO SECTION: OPTION 1 HIGH-TECH GLASSMORPHISM
+          (Spacious 3-Line Title Flanked by Exact Mockup Floating Cards)
          ========================================================================= */}
-      <section className="relative z-10 pt-10 sm:pt-16 pb-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative z-10 pt-6 sm:pt-12 pb-16 sm:pb-24 max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16">
         
-        {/* DESKTOP LAYOUT (1024px+): Exact Mockup Arrangement */}
-        <div className="hidden lg:grid grid-cols-12 gap-6 items-center min-h-[580px]">
+        {/* DESKTOP LAYOUT (1024px+): Exact Mockup Arrangement & Spacious Composition */}
+        <div className="hidden lg:flex items-center justify-between gap-6 xl:gap-12 min-h-[580px]">
           
           {/* LEFT WING: Card 1 (Top Left) & Card 2 (Bottom Left) */}
-          <div className="col-span-4 flex flex-col gap-6 justify-between">
+          <div className="w-[310px] xl:w-[365px] 2xl:w-[385px] shrink-0 flex flex-col gap-7 justify-center">
             
             {/* CARD 1: Contactless QR Table Ordering */}
-            <div className="rounded-3xl bg-[#11131C]/85 border border-white/[0.12] p-5 shadow-[0_20px_50px_rgba(0,0,0,0.8),_0_0_20px_rgba(245,158,11,0.08)] backdrop-blur-2xl -rotate-2 hover:rotate-0 transition-transform duration-300">
-              <div className="flex items-center justify-between mb-3.5">
-                <h3 className="text-xs font-bold text-white tracking-wide">
-                  Contactless QR Table Ordering
-                </h3>
-                <MoreHorizontal className="w-4 h-4 text-[#71717A]" />
-              </div>
-
-              {/* QR Code and Food Selection Items */}
-              <div className="grid grid-cols-12 gap-3 items-center">
-                {/* Left: Working QR Code Box */}
-                <div className="col-span-5 p-2 bg-[#0A0C12] rounded-2xl border border-white/[0.08] flex flex-col items-center">
-                  <div className="p-1.5 bg-white rounded-xl shadow-md">
-                    <ClientQRCode path={demoQrPath} size={90} level="M" />
-                  </div>
-                  <span className="text-[9px] font-bold text-[#A1A1AA] mt-1.5">Table 5</span>
-                </div>
-
-                {/* Right: Food Item Badges Grid */}
-                <div className="col-span-7 space-y-2">
-                  <div className="grid grid-cols-3 gap-1.5 text-center">
-                    <div className="p-1.5 rounded-xl bg-white/[0.04] border border-white/[0.08] flex flex-col items-center">
-                      <span className="text-base">☕</span>
-                      <span className="text-[8px] font-semibold text-[#D4D4D8] mt-0.5">Latte</span>
-                    </div>
-                    <div className="p-1.5 rounded-xl bg-white/[0.04] border border-white/[0.08] flex flex-col items-center">
-                      <span className="text-base">🥐</span>
-                      <span className="text-[8px] font-semibold text-[#D4D4D8] mt-0.5">Pastry</span>
-                    </div>
-                    <div className="p-1.5 rounded-xl bg-white/[0.04] border border-white/[0.08] flex flex-col items-center">
-                      <span className="text-base">🥪</span>
-                      <span className="text-[8px] font-semibold text-[#D4D4D8] mt-0.5">Sandwich</span>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-1.5 text-center">
-                    <div className="p-1.5 rounded-xl bg-white/[0.04] border border-white/[0.08] flex flex-col items-center">
-                      <span className="text-base">🧋</span>
-                      <span className="text-[8px] font-semibold text-[#D4D4D8] mt-0.5">Shake</span>
-                    </div>
-                    <div className="p-1.5 rounded-xl bg-white/[0.04] border border-white/[0.08] flex flex-col items-center">
-                      <span className="text-base">🍔</span>
-                      <span className="text-[8px] font-semibold text-[#D4D4D8] mt-0.5">Burger</span>
-                    </div>
-                    <div className="p-1.5 rounded-xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-[#A1A1AA] text-xs font-bold">
-                      +
-                    </div>
-                  </div>
-
-                  {/* Order Button */}
-                  <a
-                    href={demoQrPath}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full py-2 px-3 rounded-xl bg-[#F59E0B] hover:bg-[#FBBF24] text-[#090A0F] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-[0_0_15px_rgba(245,158,11,0.3)] transition-all cursor-pointer"
-                  >
-                    <span>Order</span>
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            {/* CARD 2: Instant Billing Metrics (With Undulating Wave Chart) */}
-            <div className="rounded-3xl bg-[#11131C]/85 border border-white/[0.12] p-5 shadow-[0_20px_50px_rgba(0,0,0,0.8),_0_0_20px_rgba(139,92,246,0.1)] backdrop-blur-2xl -rotate-1 hover:rotate-0 transition-transform duration-300">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-[#F59E0B]/20 border border-[#F59E0B]/40 flex items-center justify-center text-[#F59E0B]">
-                    <BarChart3 className="w-3.5 h-3.5" />
-                  </div>
-                  <h3 className="text-xs font-bold text-white">Instant Billing Metrics</h3>
-                </div>
-                <MoreHorizontal className="w-4 h-4 text-[#71717A]" />
-              </div>
-
-              {/* Metric Counter Headers */}
-              <div className="flex items-center justify-between px-1 mb-2 text-xs">
-                <div>
-                  <span className="text-[9px] text-[#A1A1AA] uppercase font-bold block">Revenue Today</span>
-                  <span className="text-sm font-black text-white">$1,250.00</span>
-                </div>
-                <div>
-                  <span className="text-[9px] text-[#A1A1AA] uppercase font-bold block">Orders</span>
-                  <span className="text-sm font-black text-white">89</span>
-                </div>
-                <div>
-                  <span className="text-[9px] text-[#A1A1AA] uppercase font-bold block">Average Ticket</span>
-                  <span className="text-sm font-black text-white">$14.00</span>
-                </div>
-              </div>
-
-              {/* Undulating Orange/Purple Wave Sparkline Chart */}
-              <div className="p-2.5 rounded-2xl bg-[#090A0F] border border-white/[0.06] relative overflow-hidden">
-                <div className="flex items-center justify-end mb-1">
-                  <span className="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/25">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
-                    Live
+            <Link
+              href={demoQrPath}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group block relative cursor-pointer focus:outline-none"
+              title="Click to launch Table 5 Live Digital Menu"
+            >
+              <div className="relative rounded-2xl xl:rounded-3xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.85),_0_0_25px_rgba(245,158,11,0.12)] border border-white/[0.08] group-hover:border-[#F59E0B]/50 group-hover:shadow-[0_25px_60px_rgba(0,0,0,0.95),_0_0_35px_rgba(245,158,11,0.3)] transition-all duration-300 transform -rotate-2 group-hover:rotate-0 group-hover:scale-[1.02]">
+                <img
+                  src="/designs/card1-qr.png"
+                  alt="Contactless QR Table Ordering"
+                  className="w-full h-auto block select-none"
+                  draggable={false}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-3">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#F59E0B] text-black text-[10px] font-black uppercase tracking-wider shadow-lg">
+                    <span>Test QR Order Menu</span>
+                    <ExternalLink className="w-3 h-3" />
                   </span>
                 </div>
-                <div className="h-16 w-full">
-                  <svg viewBox="0 0 300 70" className="w-full h-full overflow-visible">
-                    <defs>
-                      <linearGradient id="waveFill" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#F59E0B" stopOpacity="0.4" />
-                        <stop offset="50%" stopColor="#8B5CF6" stopOpacity="0.15" />
-                        <stop offset="100%" stopColor="#8B5CF6" stopOpacity="0.0" />
-                      </linearGradient>
-                    </defs>
-                    <path
-                      d="M 0,55 Q 35,15 75,40 T 150,20 T 225,12 T 300,35 L 300,70 L 0,70 Z"
-                      fill="url(#waveFill)"
-                    />
-                    <path
-                      d="M 0,55 Q 35,15 75,40 T 150,20 T 225,12 T 300,35"
-                      fill="none"
-                      stroke="#F59E0B"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                    />
-                    <circle cx="225" cy="12" r="4.5" fill="#FFFFFF" stroke="#F59E0B" strokeWidth="2.5" />
-                  </svg>
+              </div>
+            </Link>
+
+            {/* CARD 2: Instant Billing Metrics */}
+            <Link
+              href="/admin/login"
+              className="group block relative cursor-pointer focus:outline-none"
+              title="Click to view live analytics in admin portal"
+            >
+              <div className="relative rounded-2xl xl:rounded-3xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.85),_0_0_25px_rgba(139,92,246,0.12)] border border-white/[0.08] group-hover:border-[#8B5CF6]/50 group-hover:shadow-[0_25px_60px_rgba(0,0,0,0.95),_0_0_35px_rgba(139,92,246,0.3)] transition-all duration-300 transform -rotate-1 group-hover:rotate-0 group-hover:scale-[1.02]">
+                <img
+                  src="/designs/card2-metrics.png"
+                  alt="Instant Billing Metrics"
+                  className="w-full h-auto block select-none"
+                  draggable={false}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-3">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#181B28] text-white border border-[#8B5CF6]/60 text-[10px] font-bold tracking-wider shadow-lg">
+                    <BarChart3 className="w-3 h-3 text-[#F59E0B]" />
+                    <span>View Live Revenue POS</span>
+                  </span>
                 </div>
               </div>
-            </div>
+            </Link>
           </div>
 
-          {/* CENTER HERO: HEADLINE, SUBTITLE, CTAS */}
-          <div className="col-span-4 text-center px-2 space-y-6">
-            <h1 className="text-4xl sm:text-5xl lg:text-5xl xl:text-6xl font-black tracking-tight text-white leading-[1.12]">
-              Next-Gen Operating System for{' '}
-              <span className="block text-white">Modern Cafes</span>
+          {/* CENTER HERO: HEADLINE (EXACT 3 CLEAN LINES), SUBTITLE, CTAS */}
+          <div className="flex-1 min-w-0 max-w-[620px] xl:max-w-[700px] 2xl:max-w-[760px] text-center px-4 py-4 space-y-6">
+            <h1 className="text-4xl sm:text-5xl lg:text-[48px] xl:text-[58px] 2xl:text-[64px] font-black tracking-tight text-white leading-[1.12] text-center">
+              Next-Gen Operating<br />
+              System for Modern<br />
+              Cafes
             </h1>
 
-            <p className="text-sm text-[#A1A1AA] leading-relaxed max-w-md mx-auto">
+            <p className="text-sm sm:text-base xl:text-lg text-[#A1A1AA] max-w-xl mx-auto leading-relaxed font-normal">
               Optimize operations, delight customers, and scale your business with the ultimate cloud-based platform for cafes and small restaurants.
             </p>
 
             {/* Glowing CTAs (Request Free Demo & Explore Platform) */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 pt-2">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
               <Link
                 href="/admin/login"
-                className="w-full sm:w-auto px-7 py-3.5 rounded-full bg-[#F59E0B] hover:bg-[#FBBF24] text-[#090A0F] font-black text-xs uppercase tracking-wider shadow-[0_0_30px_rgba(245,158,11,0.5)] transition-all hover:scale-105 cursor-pointer"
+                className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-[#F59E0B] hover:bg-[#FBBF24] text-[#090A0F] font-black text-xs uppercase tracking-wider shadow-[0_0_35px_rgba(245,158,11,0.55)] transition-all hover:scale-105 active:scale-95 cursor-pointer text-center"
               >
                 Request Free Demo
               </Link>
               <a
                 href="#features"
-                className="w-full sm:w-auto px-6 py-3.5 rounded-full bg-[#11131C] hover:bg-[#181B28] text-white font-bold text-xs uppercase tracking-wider border border-white/[0.15] shadow-lg transition-all cursor-pointer"
+                className="w-full sm:w-auto px-7 py-3.5 rounded-full bg-[#11131C] hover:bg-[#181B28] text-white font-bold text-xs uppercase tracking-wider border border-white/[0.18] shadow-lg transition-all hover:border-white/40 active:scale-95 cursor-pointer text-center"
               >
                 Explore Platform
               </a>
@@ -315,90 +221,45 @@ export default function HomePage() {
           </div>
 
           {/* RIGHT WING: Card 3 (Live Kitchen Display KDS Tablet) */}
-          <div className="col-span-4 flex justify-end">
-            <div className="w-full rounded-3xl bg-[#11131C]/90 border border-white/[0.12] p-5 shadow-[0_20px_50px_rgba(0,0,0,0.8),_0_0_25px_rgba(16,185,129,0.08)] backdrop-blur-2xl rotate-2 hover:rotate-0 transition-transform duration-300">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xs font-bold text-white tracking-wide">
-                  Live Kitchen Display
-                </h3>
-                <MoreHorizontal className="w-4 h-4 text-[#71717A]" />
-              </div>
-
-              {/* Sub-nav in KDS */}
-              <div className="flex items-center justify-between mb-3 text-[10px] text-[#A1A1AA] pb-2 border-b border-white/[0.06]">
-                <div className="flex items-center gap-3">
-                  <span className="font-bold text-white">KDS</span>
-                  <span>Chimes</span>
-                </div>
-                <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.08] text-[#D4D4D8]">
-                  <span>Preparing</span>
-                  <ChevronDown className="w-3 h-3 text-[#A1A1AA]" />
-                </div>
-              </div>
-
-              {/* Two Column Section inside KDS */}
-              <div className="grid grid-cols-12 gap-3 mb-2">
-                {/* Left Mini Tab */}
-                <div className="col-span-4 space-y-2">
-                  <div className="p-2 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-center">
-                    <span className="text-[10px] font-bold block">🟢 Active</span>
-                    <span className="text-[9px] text-emerald-300/80">Tickets</span>
-                  </div>
-                </div>
-
-                {/* Right Tickets Feed */}
-                <div className="col-span-8 space-y-2.5">
-                  {/* Order #12 */}
-                  <div className="p-3 rounded-2xl bg-[#090B10] border border-white/[0.08]">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-bold text-white">Order #12</span>
-                      <span className="text-[9px] text-[#71717A]">5m ago</span>
-                    </div>
-                    <p className="text-[11px] text-[#D4D4D8] leading-tight">• Burger</p>
-                    <p className="text-[11px] text-[#D4D4D8] leading-tight">• Fries</p>
-                    <div className="flex justify-end mt-1.5">
-                      <span className="text-[9px] font-bold px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                        Ready
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Order #13 */}
-                  <div className="p-3 rounded-2xl bg-[#090B10] border border-white/[0.08]">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-bold text-white">Order #13</span>
-                      <span className="text-[9px] text-[#71717A]">3m ago</span>
-                    </div>
-                    <p className="text-[11px] text-[#D4D4D8] leading-tight">• Pizza</p>
-                    <p className="text-[11px] text-[#D4D4D8] leading-tight">• Coke</p>
-                    <div className="flex justify-end mt-1.5">
-                      <span className="text-[9px] font-bold px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                        Ready
-                      </span>
-                    </div>
-                  </div>
+          <div className="w-[310px] xl:w-[365px] 2xl:w-[385px] shrink-0 flex items-center justify-center">
+            <Link
+              href="/admin/login"
+              className="group block relative cursor-pointer w-full focus:outline-none"
+              title="Click to launch Live Kitchen Display System (KDS)"
+            >
+              <div className="relative rounded-2xl xl:rounded-3xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.85),_0_0_25px_rgba(16,185,129,0.12)] border border-white/[0.08] group-hover:border-emerald-500/50 group-hover:shadow-[0_25px_60px_rgba(0,0,0,0.95),_0_0_35px_rgba(16,185,129,0.3)] transition-all duration-300 transform rotate-2 group-hover:rotate-0 group-hover:scale-[1.02]">
+                <img
+                  src="/designs/card3-kitchen.png"
+                  alt="Live Kitchen Display (KDS)"
+                  className="w-full h-auto block select-none"
+                  draggable={false}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-3">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#181B28] text-emerald-400 border border-emerald-500/60 text-[10px] font-bold tracking-wider shadow-lg">
+                    <ChefHat className="w-3 h-3 text-emerald-400" />
+                    <span>Open Kitchen KDS</span>
+                  </span>
                 </div>
               </div>
-            </div>
+            </Link>
           </div>
         </div>
 
         {/* MOBILE & TABLET LAYOUT (<1024px): Stacked Gracefully */}
         <div className="lg:hidden space-y-10">
-          <div className="text-center space-y-4">
-            <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-white leading-[1.15]">
-              Next-Gen Operating System for{' '}
-              <span className="bg-gradient-to-r from-[#FDE68A] via-[#F59E0B] to-[#EA580C] bg-clip-text text-transparent">
-                Modern Cafes
-              </span>
+          <div className="text-center space-y-4 px-2">
+            <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-white leading-[1.14]">
+              Next-Gen Operating<br className="hidden sm:inline" />
+              {' '}System for Modern<br className="hidden sm:inline" />
+              {' '}Cafes
             </h1>
-            <p className="text-xs sm:text-sm text-[#A1A1AA] max-w-lg mx-auto">
+            <p className="text-xs sm:text-sm text-[#A1A1AA] max-w-lg mx-auto leading-relaxed">
               Optimize operations, delight customers, and scale your business with the ultimate cloud-based platform for cafes and small restaurants.
             </p>
             <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
               <Link
                 href="/admin/login"
-                className="px-6 py-3 rounded-full bg-[#F59E0B] text-[#090A0F] font-black text-xs uppercase tracking-wider shadow-lg"
+                className="px-7 py-3 rounded-full bg-[#F59E0B] text-[#090A0F] font-black text-xs uppercase tracking-wider shadow-[0_0_25px_rgba(245,158,11,0.5)]"
               >
                 Request Free Demo
               </Link>
@@ -411,41 +272,42 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Cards Stream on Mobile */}
-          <div className="space-y-4">
-            {/* Mobile Card 1 */}
-            <div className="p-5 rounded-3xl bg-[#11131C] border border-white/10 shadow-xl">
-              <h3 className="text-xs font-bold text-white mb-2">Contactless QR Table Ordering</h3>
-              <div className="flex items-center gap-4">
-                <div className="p-2 bg-white rounded-xl shrink-0">
-                  <ClientQRCode path={demoQrPath} size={90} level="M" />
-                </div>
-                <div className="space-y-1.5 flex-1">
-                  <p className="text-xs text-[#A1A1AA]">Scan with phone to view real digital menu.</p>
-                  <a
-                    href={demoQrPath}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#F59E0B] text-[#090A0F] font-bold text-xs"
-                  >
-                    <span>Launch Table Menu</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
-                </div>
-              </div>
-            </div>
+          {/* Exact Image Cards on Mobile */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 max-w-2xl mx-auto px-2">
+            <Link
+              href={demoQrPath}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-2xl overflow-hidden border border-white/10 shadow-xl block"
+            >
+              <img
+                src="/designs/card1-qr.png"
+                alt="Contactless QR Table Ordering"
+                className="w-full h-auto block"
+              />
+            </Link>
 
-            {/* Mobile Card 2 */}
-            <div className="p-5 rounded-3xl bg-[#11131C] border border-white/10 shadow-xl">
-              <h3 className="text-xs font-bold text-white mb-2">Live Kitchen Display (KDS)</h3>
-              <div className="p-3 rounded-xl bg-[#090B10] border border-white/10 space-y-1">
-                <div className="flex justify-between text-xs font-bold text-white">
-                  <span>Order #12</span>
-                  <span className="text-emerald-400">Ready</span>
-                </div>
-                <p className="text-xs text-[#A1A1AA]">• Burger, Fries (5m ago)</p>
-              </div>
-            </div>
+            <Link
+              href="/admin/login"
+              className="rounded-2xl overflow-hidden border border-white/10 shadow-xl block"
+            >
+              <img
+                src="/designs/card3-kitchen.png"
+                alt="Live Kitchen Display (KDS)"
+                className="w-full h-auto block"
+              />
+            </Link>
+
+            <Link
+              href="/admin/login"
+              className="sm:col-span-2 max-w-md mx-auto w-full rounded-2xl overflow-hidden border border-white/10 shadow-xl block"
+            >
+              <img
+                src="/designs/card2-metrics.png"
+                alt="Instant Billing Metrics"
+                className="w-full h-auto block"
+              />
+            </Link>
           </div>
         </div>
       </section>
