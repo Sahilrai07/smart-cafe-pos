@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
+import { useClientOrigin } from '@/lib/useClientOrigin';
 
 interface ClientQRCodeProps {
   path?: string; // Relative path e.g. "/r/quick-bite/t/01"
@@ -22,22 +23,18 @@ export const ClientQRCode: React.FC<ClientQRCodeProps> = ({
   className,
   onUrlReady,
 }) => {
-  const [origin, setOrigin] = useState<string>('');
+  const origin = useClientOrigin();
   const [mounted, setMounted] = useState<boolean>(false);
 
   useEffect(() => {
     setMounted(true);
-    if (typeof window !== 'undefined') {
-      const currentOrigin = window.location.origin;
-      setOrigin(currentOrigin);
+    if (origin && onUrlReady) {
       const computedUrl =
         value ||
-        (path ? `${currentOrigin}${path.startsWith('/') ? path : `/${path}`}` : currentOrigin);
-      if (onUrlReady) {
-        onUrlReady(computedUrl);
-      }
+        (path ? `${origin}${path.startsWith('/') ? path : `/${path}`}` : origin);
+      onUrlReady(computedUrl);
     }
-  }, [path, value, onUrlReady]);
+  }, [path, value, origin, onUrlReady]);
 
   // SSR and initial client hydration render identical placeholder div to guarantee zero hydration mismatch
   if (!mounted || (!value && !origin)) {

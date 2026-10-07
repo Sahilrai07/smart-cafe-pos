@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { cafeStore, subscribeToStore } from '@/lib/store';
+import { supabaseService } from '@/lib/services/supabaseService';
+import { cafeStore } from '@/lib/store';
 import { Order, OrderStatus, Restaurant, RestaurantSettings, Bill } from '@/types';
 import { formatCurrency } from '@/lib/utils';
 import { GenerateBillModal } from '@/components/admin/GenerateBillModal';
@@ -29,31 +30,45 @@ export default function AdminOrdersPage() {
   const [isBillModalOpen, setIsBillModalOpen] = useState(false);
   const previousNewCount = useRef(0);
 
-  const refreshOrders = () => {
-    const rId = cafeStore.getActiveRestaurantId();
-    const r = cafeStore.getRestaurantById(rId);
-    setRestaurant(r || null);
-    if (r) {
-      setSettings(cafeStore.getSettings(r.id));
-      const list = cafeStore.getOrders(r.id);
-      setOrders(list);
+  const refreshOrders = async () => {
+    try {
+      const rId = cafeStore.getActiveRestaurantId();
+      const r = (await supabaseService.getRestaurantById(rId)) || (await supabaseService.getAllRestaurants())[0];
+      setRestaurant(r || null);
+      if (r) {
+        const [s, list] = await Promise.all([
+          supabaseService.getSettings(r.id),
+          supabaseService.getOrders(r.id),
+        ]);
+        setSettings(s);
+        setOrders(list);
 
-      // Check if new order arrived and play sound
-      const currentNewCount = list.filter((o) => o.status === 'NEW').length;
-      if (currentNewCount > previousNewCount.current && soundEnabled) {
-        playOrderChime();
+        // Check if new order arrived and play sound
+        const currentNewCount = list.filter((o) => o.status === 'NEW').length;
+        if (currentNewCount > previousNewCount.current && soundEnabled) {
+          playOrderChime();
+        }
+        previousNewCount.current = currentNewCount;
       }
-      previousNewCount.current = currentNewCount;
+    } catch (e) {
+      console.error('Error refreshing orders:', e);
     }
   };
 
   useEffect(() => {
     refreshOrders();
-    const unsub = subscribeToStore(refreshOrders);
-    // Polling fallback every 10 seconds for real-time safety
-    const interval = setInterval(refreshOrders, 10000);
+
+    const rId = cafeStore.getActiveRestaurantId();
+    // Subscribe to real-time changes from Supabase Realtime channel
+    const unsubRealtime = supabaseService.subscribeToOrders(rId, () => {
+      refreshOrders();
+    });
+
+    // Fast background safety interval (3s)
+    const interval = setInterval(refreshOrders, 3000);
+
     return () => {
-      unsub();
+      unsubRealtime();
       clearInterval(interval);
     };
   }, [soundEnabled]);
@@ -78,33 +93,14 @@ export default function AdminOrdersPage() {
     }
   };
 
-  const handleUpdateStatus = (orderId: string, status: OrderStatus) => {
-    cafeStore.updateOrderStatus(orderId, status);
-    refreshOrders();
+  const handleUpdateStatus = async (orderId: string, status: OrderStatus) => {
+    await supabaseService.updateOrderStatus(orderId, status);
+    await refreshOrders();
   };
 
   const handleOpenBillModal = (order: Order) => {
     setSelectedOrderForBill(order);
     setIsBillModalOpen(true);
-  };
-
-  // Handy pitch simulation button
-  const handleSimulateNewOrder = () => {
-    if (!restaurant) return;
-    cafeStore.createOrder({
-      restaurant_id: restaurant.id,
-      table_number_snapshot: '04',
-      items: [
-        { item_name_snapshot: 'Classic Veg Burger', quantity: 1, unit_price_snapshot: 120, total: 120 },
-        { item_name_snapshot: 'Chilled Coke (Can)', quantity: 2, unit_price_snapshot: 40, total: 80 },
-        { item_name_snapshot: 'Crispy Golden Salted Fries', quantity: 1, unit_price_snapshot: 60, total: 60 },
-      ],
-      subtotal: 260,
-      tax: 13,
-      total: 273,
-      special_instructions: 'Less spicy, please serve fries hot.',
-    });
-    playOrderChime();
   };
 
   const filteredOrders = orders.filter((o) => {
@@ -122,43 +118,50 @@ export default function AdminOrdersPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-black text-white tracking-tight">
-              Live Kitchen Orders
+            <h1 className="text-2xl font-bold text-[#EDE7DF] tracking-tight">
+              Live Table Orders
             </h1>
             {newOrdersCount > 0 && (
-              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-black bg-rose-500 text-white animate-pulse shadow-md shadow-rose-500/30">
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-[#B35C4A] text-white shadow-md shadow-[#B35C4A]/20">
                 <AlertCircle className="w-3.5 h-3.5" />
                 {newOrdersCount} NEW
               </span>
             )}
           </div>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-[#A89887] mt-1">
             Real-time table orders from customer QR scans • {restaurant?.name}
           </p>
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Live Sync Status Pill */}
+          <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#5F7A62]/15 border border-[#5F7A62]/30 text-[#9BB89E] text-xs font-semibold">
+            <span className="w-2 h-2 rounded-full bg-[#5F7A62] animate-pulse" />
+            <span>Live Sync</span>
+          </div>
+
           {/* Sound Notification Toggle */}
           <button
             onClick={() => setSoundEnabled(!soundEnabled)}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold border transition-colors ${
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border transition-colors cursor-pointer ${
               soundEnabled
-                ? 'bg-slate-800 text-amber-400 border-slate-700'
-                : 'bg-slate-900 text-slate-500 border-slate-800'
+                ? 'bg-[#241D17] text-[#D4AD85] border-[#C29B72]/30'
+                : 'bg-[#1C1713] text-[#7A6B5D] border-[#2B221A]'
             }`}
             title={soundEnabled ? 'Chime sound is ON' : 'Chime sound is MUTED'}
           >
-            {soundEnabled ? <Volume2 className="w-4 h-4 text-amber-400" /> : <VolumeX className="w-4 h-4 text-slate-500" />}
+            {soundEnabled ? <Volume2 className="w-4 h-4 text-[#D4AD85]" /> : <VolumeX className="w-4 h-4 text-[#7A6B5D]" />}
             <span>{soundEnabled ? 'Sound ON' : 'Muted'}</span>
           </button>
 
-          {/* Simulate Live Order for Pitch Demos */}
+          {/* Manual Refresh Button */}
           <button
-            onClick={handleSimulateNewOrder}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 text-xs font-black shadow-md shadow-amber-500/20 active:scale-95 transition-all"
+            onClick={refreshOrders}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#1C1713] hover:bg-[#241D17] text-[#EDE7DF] text-xs font-semibold border border-[#2B221A] transition-colors cursor-pointer"
+            title="Refresh Orders"
           >
-            <PlusCircle className="w-4 h-4" />
-            <span>Simulate Order #1042</span>
+            <RefreshCw className="w-3.5 h-3.5 text-[#A89887]" />
+            <span className="hidden sm:inline">Refresh</span>
           </button>
         </div>
       </div>
@@ -176,15 +179,15 @@ export default function AdminOrdersPage() {
           <button
             key={tab.value}
             onClick={() => setStatusFilter(tab.value)}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
               statusFilter === tab.value
-                ? 'bg-amber-500 text-slate-950 font-black shadow-md shadow-amber-500/20'
-                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                ? 'bg-[#C29B72] text-[#14110E] font-bold shadow-md shadow-[#C29B72]/20'
+                : 'bg-[#1C1713] text-[#A89887] hover:text-[#EDE7DF] border border-[#2B221A]'
             }`}
           >
             <span>{tab.label}</span>
             {tab.count !== undefined && tab.count > 0 && (
-              <span className="w-4 h-4 rounded-full bg-rose-600 text-white text-[10px] font-black flex items-center justify-center">
+              <span className="w-4 h-4 rounded-full bg-[#B35C4A] text-white text-[10px] font-bold flex items-center justify-center">
                 {tab.count}
               </span>
             )}
@@ -195,11 +198,11 @@ export default function AdminOrdersPage() {
       {/* Orders Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {filteredOrders.length === 0 ? (
-          <div className="col-span-full py-16 text-center bg-slate-950/60 rounded-3xl border border-slate-800/80">
-            <UtensilsCrossed className="w-10 h-10 text-slate-600 mx-auto mb-2" />
-            <p className="text-sm font-bold text-slate-400">No orders found in this filter</p>
-            <p className="text-xs text-slate-500 mt-1">
-              New customer orders placed from table QR codes will appear here automatically.
+          <div className="col-span-full py-16 text-center bg-[#1C1713] rounded-3xl border border-[#2B221A]">
+            <UtensilsCrossed className="w-10 h-10 text-[#7A6B5D] mx-auto mb-2" />
+            <p className="text-sm font-bold text-[#EDE7DF]">No orders found in this filter</p>
+            <p className="text-xs text-[#A89887] mt-1">
+              New customer orders placed from table QR codes will appear here in real-time.
             </p>
           </div>
         ) : (
@@ -210,26 +213,26 @@ export default function AdminOrdersPage() {
                 key={order.id}
                 className={`rounded-3xl p-5 border transition-all flex flex-col justify-between ${
                   isNew
-                    ? 'bg-slate-950 border-amber-500/80 shadow-lg shadow-amber-500/10 ring-2 ring-amber-500/30 animate-in zoom-in-95'
-                    : 'bg-slate-950/80 border-slate-800 hover:border-slate-700'
+                    ? 'bg-[#1C1713] border-[#C29B72]/60 shadow-lg shadow-[#C29B72]/5 ring-1 ring-[#C29B72]/30 animate-in zoom-in-95'
+                    : 'bg-[#1C1713] border-[#2B221A] hover:border-[#3D322B]'
                 }`}
               >
                 <div>
                   {/* Order Top Bar */}
-                  <div className="flex items-start justify-between gap-2 pb-3 border-b border-slate-800/80">
+                  <div className="flex items-start justify-between gap-2 pb-3 border-b border-[#2B221A]">
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="text-lg font-black text-white">
+                        <span className="text-lg font-bold text-[#EDE7DF]">
                           #{order.order_number}
                         </span>
                         {isNew && (
-                          <span className="px-2 py-0.5 rounded-md bg-rose-500 text-white text-[10px] font-black uppercase tracking-wider animate-pulse">
-                            NEW ORDER
+                          <span className="px-2 py-0.5 rounded-md bg-[#B35C4A] text-white text-[10px] font-bold uppercase tracking-wider">
+                            NEW
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-slate-400 mt-0.5 flex items-center gap-1">
-                        <Clock className="w-3 h-3 text-slate-500" />
+                      <p className="text-xs text-[#A89887] mt-0.5 flex items-center gap-1">
+                        <Clock className="w-3 h-3 text-[#7A6B5D]" />
                         {new Date(order.created_at).toLocaleTimeString([], {
                           hour: '2-digit',
                           minute: '2-digit',
@@ -238,7 +241,7 @@ export default function AdminOrdersPage() {
                     </div>
 
                     <div className="text-right">
-                      <div className="inline-block px-3 py-1 rounded-full text-xs font-black bg-amber-500/15 text-amber-400 border border-amber-500/30">
+                      <div className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-[#241D17] text-[#D4AD85] border border-[#2B221A]">
                         {order.table_number_snapshot ? `Table ${order.table_number_snapshot}` : 'Takeaway'}
                       </div>
                     </div>
@@ -247,12 +250,12 @@ export default function AdminOrdersPage() {
                   {/* Items list */}
                   <div className="py-3 space-y-1.5 text-xs">
                     {order.items?.map((item, idx) => (
-                      <div key={idx} className="flex justify-between items-center text-slate-300">
-                        <span className="font-semibold">
-                          <span className="text-amber-400 font-bold">{item.quantity}×</span>{' '}
+                      <div key={idx} className="flex justify-between items-center text-[#EDE7DF]">
+                        <span className="font-medium">
+                          <span className="text-[#D4AD85] font-bold">{item.quantity}×</span>{' '}
                           {item.item_name_snapshot}
                         </span>
-                        <span className="text-slate-400 font-mono">
+                        <span className="text-[#A89887] font-mono">
                           {formatCurrency(item.total, currency)}
                         </span>
                       </div>
@@ -261,39 +264,40 @@ export default function AdminOrdersPage() {
 
                   {/* Special Instructions */}
                   {order.special_instructions && (
-                    <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-amber-300/90 mb-3 flex items-start gap-1.5">
-                      <ChefHat className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
+                    <div className="p-2.5 rounded-xl bg-[#241D17] border border-[#2B221A] text-xs text-[#EDE7DF] mb-3 flex items-start gap-1.5">
+                      <ChefHat className="w-3.5 h-3.5 text-[#D4AD85] shrink-0 mt-0.5" />
                       <span>{order.special_instructions}</span>
                     </div>
                   )}
 
                   {/* Total & Tax */}
-                  <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
+                  <div className="pt-2 border-t border-[#2B221A] flex items-center justify-between text-xs text-[#A89887]">
                     <span>
                       Subtotal: {formatCurrency(order.subtotal, currency)} + GST
                     </span>
-                    <span className="text-base font-black text-white">
+                    <span className="text-base font-bold text-[#EDE7DF]">
                       {formatCurrency(order.total, currency)}
                     </span>
                   </div>
                 </div>
 
                 {/* Workflow Buttons */}
-                <div className="mt-4 pt-3 border-t border-slate-800/80 flex flex-col gap-2">
+                <div className="mt-4 pt-3 border-t border-[#2B221A] flex flex-col gap-2">
                   <div className="grid grid-cols-2 gap-2">
                     {order.status === 'NEW' && (
                       <button
                         onClick={() => handleUpdateStatus(order.id, 'PREPARING')}
-                        className="py-2.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-black transition-colors text-center"
+                        className="py-2.5 px-3 rounded-xl bg-[#5F7A62] hover:bg-[#4E6751] text-[#FAF8F5] text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-md shadow-[#5F7A62]/20 text-center cursor-pointer"
                       >
-                        Accept & Prepare
+                        <CheckCircle2 className="w-3.5 h-3.5 text-[#FAF8F5]" />
+                        <span>Accept Order</span>
                       </button>
                     )}
 
                     {order.status === 'PREPARING' && (
                       <button
                         onClick={() => handleUpdateStatus(order.id, 'READY')}
-                        className="py-2.5 px-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-colors text-center"
+                        className="py-2.5 px-3 rounded-xl bg-[#C29B72] hover:bg-[#B38A5F] text-[#14110E] text-xs font-bold transition-colors text-center cursor-pointer"
                       >
                         Mark Ready
                       </button>
@@ -302,19 +306,19 @@ export default function AdminOrdersPage() {
                     {order.status === 'READY' && (
                       <button
                         onClick={() => handleUpdateStatus(order.id, 'COMPLETED')}
-                        className="py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors text-center"
+                        className="py-2.5 px-3 rounded-xl bg-[#241D17] hover:bg-[#2B221A] text-[#EDE7DF] border border-[#2B221A] text-xs font-bold transition-colors text-center cursor-pointer"
                       >
                         Mark Completed
                       </button>
                     )}
 
-                    {/* Generate Bill Button (Always visible / primary action!) */}
+                    {/* Generate Bill Button */}
                     <button
                       onClick={() => handleOpenBillModal(order)}
-                      className="py-2.5 px-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-black flex items-center justify-center gap-1.5 shadow-md shadow-emerald-600/20 transition-all col-span-2"
+                      className="py-2.5 px-3 rounded-xl bg-[#C29B72] hover:bg-[#B38A5F] text-[#14110E] text-xs font-bold flex items-center justify-center gap-1.5 shadow-md shadow-[#C29B72]/20 transition-all col-span-2 cursor-pointer"
                     >
                       <Receipt className="w-3.5 h-3.5" />
-                      <span>Generate Bill & Send WhatsApp</span>
+                      <span>Generate Bill & WhatsApp</span>
                     </button>
                   </div>
                 </div>

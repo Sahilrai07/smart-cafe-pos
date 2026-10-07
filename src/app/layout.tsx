@@ -13,9 +13,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Quick Bite Cafe | Digital QR Ordering & WhatsApp SaaS',
+  title: 'Artisan Cafe & Restaurant | Contactless QR Dining & SaaS',
   description: 'Frictionless QR menu ordering, kitchen management, digital billing, and WhatsApp Birthday Club for modern cafes.',
   keywords: ['restaurant pos', 'cafe qr menu', 'digital ordering', 'whatsapp billing', 'birthday club'],
+  manifest: '/manifest.json',
 };
 
 export const viewport: Viewport = {
@@ -23,6 +24,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  themeColor: '#241D17',
 };
 
 export default function RootLayout({

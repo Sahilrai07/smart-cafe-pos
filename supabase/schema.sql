@@ -142,6 +142,8 @@ CREATE TABLE IF NOT EXISTS public.orders (
     table_id UUID REFERENCES public.tables(id) ON DELETE SET NULL,
     table_number_snapshot VARCHAR(50),
     customer_id UUID REFERENCES public.customers(id) ON DELETE SET NULL,
+    customer_name VARCHAR(255),
+    customer_phone VARCHAR(50),
     order_number SERIAL,
     status VARCHAR(50) DEFAULT 'NEW' CHECK (status IN ('NEW', 'CONFIRMED', 'PREPARING', 'READY', 'COMPLETED', 'CANCELLED')),
     subtotal NUMERIC(10,2) NOT NULL DEFAULT 0.00,
@@ -179,12 +181,15 @@ CREATE TABLE IF NOT EXISTS public.bills (
     restaurant_id UUID NOT NULL REFERENCES public.restaurants(id) ON DELETE CASCADE,
     order_id UUID REFERENCES public.orders(id) ON DELETE SET NULL,
     customer_id UUID REFERENCES public.customers(id) ON DELETE SET NULL,
+    customer_name VARCHAR(255),
+    customer_phone VARCHAR(50),
     bill_number VARCHAR(50) NOT NULL,
     table_number_snapshot VARCHAR(50),
     subtotal NUMERIC(10,2) NOT NULL,
     tax NUMERIC(10,2) NOT NULL DEFAULT 0.00,
     discount NUMERIC(10,2) NOT NULL DEFAULT 0.00,
     total NUMERIC(10,2) NOT NULL,
+    items_snapshot JSONB,
     generated_at TIMESTAMPTZ DEFAULT NOW(),
     whatsapp_sent_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ DEFAULT NOW()
@@ -336,47 +341,64 @@ ALTER TABLE public.birthday_messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.birthday_bookings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.offers ENABLE ROW LEVEL SECURITY;
 
--- PUBLIC ANONYMOUS POLICIES (For QR Menu Ordering & Birthday Club Joining)
--- Restaurants: Public can view restaurants
+-- PUBLIC / APPLICATION ACCESS POLICIES (For QR Menu Ordering, Birthday Club, and Admin Portal)
+-- Restaurants
 CREATE POLICY "Public can view restaurants" ON public.restaurants FOR SELECT TO anon, authenticated USING (true);
 
--- Restaurant Settings: Public can view settings
+-- Restaurant Settings
 CREATE POLICY "Public can view settings" ON public.restaurant_settings FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "Public can update settings" ON public.restaurant_settings FOR UPDATE TO anon, authenticated USING (true);
 
--- Tables: Public can view active tables
-CREATE POLICY "Public can view tables" ON public.tables FOR SELECT TO anon, authenticated USING (active = true);
+-- Tables
+CREATE POLICY "Public can view tables" ON public.tables FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "Public can insert tables" ON public.tables FOR INSERT TO anon, authenticated WITH CHECK (true);
+CREATE POLICY "Public can update tables" ON public.tables FOR UPDATE TO anon, authenticated USING (true);
 
--- Menu Categories: Public can view active categories
-CREATE POLICY "Public can view categories" ON public.menu_categories FOR SELECT TO anon, authenticated USING (active = true);
+-- Menu Categories
+CREATE POLICY "Public can view categories" ON public.menu_categories FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "Public can insert categories" ON public.menu_categories FOR INSERT TO anon, authenticated WITH CHECK (true);
+CREATE POLICY "Public can update categories" ON public.menu_categories FOR UPDATE TO anon, authenticated USING (true);
 
--- Menu Items: Public can view available items
-CREATE POLICY "Public can view menu items" ON public.menu_items FOR SELECT TO anon, authenticated USING (available = true);
+-- Menu Items
+CREATE POLICY "Public can view menu items" ON public.menu_items FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "Public can insert menu items" ON public.menu_items FOR INSERT TO anon, authenticated WITH CHECK (true);
+CREATE POLICY "Public can update menu items" ON public.menu_items FOR UPDATE TO anon, authenticated USING (true);
 
--- Orders: Public can create orders
+-- Orders
+CREATE POLICY "Public can view orders" ON public.orders FOR SELECT TO anon, authenticated USING (true);
 CREATE POLICY "Public can insert orders" ON public.orders FOR INSERT TO anon, authenticated WITH CHECK (true);
-CREATE POLICY "Public can view own orders" ON public.orders FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "Public can update orders" ON public.orders FOR UPDATE TO anon, authenticated USING (true);
 
--- Order Items: Public can insert and view order items
-CREATE POLICY "Public can insert order items" ON public.order_items FOR INSERT TO anon, authenticated WITH CHECK (true);
+-- Order Items
 CREATE POLICY "Public can view order items" ON public.order_items FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "Public can insert order items" ON public.order_items FOR INSERT TO anon, authenticated WITH CHECK (true);
 
--- Birthday Bookings: Public can submit celebration inquiries
-CREATE POLICY "Public can insert bookings" ON public.birthday_bookings FOR INSERT TO anon, authenticated WITH CHECK (true);
-
--- Birthday Club Members: Public can join birthday club
-CREATE POLICY "Public can join birthday club" ON public.birthday_club_members FOR INSERT TO anon, authenticated WITH CHECK (true);
-
--- Customers: Public can upsert customer details upon join
+-- Customers
+CREATE POLICY "Public can view customers" ON public.customers FOR SELECT TO anon, authenticated USING (true);
 CREATE POLICY "Public can insert customers" ON public.customers FOR INSERT TO anon, authenticated WITH CHECK (true);
 CREATE POLICY "Public can update customers" ON public.customers FOR UPDATE TO anon, authenticated USING (true);
 
--- Bills: Public can view digital bill if they have link
+-- Bills
 CREATE POLICY "Public can view bills" ON public.bills FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "Public can insert bills" ON public.bills FOR INSERT TO anon, authenticated WITH CHECK (true);
+CREATE POLICY "Public can update bills" ON public.bills FOR UPDATE TO anon, authenticated USING (true);
 
--- Offers: Public can view active offers
-CREATE POLICY "Public can view offers" ON public.offers FOR SELECT TO anon, authenticated USING (active = true);
+-- Birthday Bookings
+CREATE POLICY "Public can view bookings" ON public.birthday_bookings FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "Public can insert bookings" ON public.birthday_bookings FOR INSERT TO anon, authenticated WITH CHECK (true);
+CREATE POLICY "Public can update bookings" ON public.birthday_bookings FOR UPDATE TO anon, authenticated USING (true);
 
--- AUTHENTICATED STAFF POLICIES (Full management for authenticated users)
+-- Birthday Club Members
+CREATE POLICY "Public can view birthday members" ON public.birthday_club_members FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "Public can insert birthday members" ON public.birthday_club_members FOR INSERT TO anon, authenticated WITH CHECK (true);
+CREATE POLICY "Public can update birthday members" ON public.birthday_club_members FOR UPDATE TO anon, authenticated USING (true);
+
+-- Offers
+CREATE POLICY "Public can view offers" ON public.offers FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "Public can insert offers" ON public.offers FOR INSERT TO anon, authenticated WITH CHECK (true);
+CREATE POLICY "Public can update offers" ON public.offers FOR UPDATE TO anon, authenticated USING (true);
+
+-- AUTHENTICATED STAFF POLICIES
 CREATE POLICY "Staff all restaurants" ON public.restaurants FOR ALL TO authenticated USING (true);
 CREATE POLICY "Staff all settings" ON public.restaurant_settings FOR ALL TO authenticated USING (true);
 CREATE POLICY "Staff all tables" ON public.tables FOR ALL TO authenticated USING (true);
@@ -392,4 +414,7 @@ CREATE POLICY "Staff all birthday messages" ON public.birthday_messages FOR ALL 
 CREATE POLICY "Staff all offers" ON public.offers FOR ALL TO authenticated USING (true);
 
 -- Enable Supabase Realtime for instant kitchen updates
+ALTER TABLE public.orders REPLICA IDENTITY FULL;
+ALTER TABLE public.bills REPLICA IDENTITY FULL;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.orders;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.bills;

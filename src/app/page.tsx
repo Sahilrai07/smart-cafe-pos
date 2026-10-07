@@ -24,71 +24,71 @@ export default function HomePage() {
   const table01DisplayUrl = origin ? `${origin}${table01Path}` : table01Path;
 
   return (
-    <main className="min-h-screen bg-slate-950 text-white selection:bg-amber-500 selection:text-slate-950">
+    <main className="min-h-screen bg-[#14110E] text-[#EDE7DF] selection:bg-[#C29B72] selection:text-[#14110E]">
       {/* Top Banner */}
-      <div className="bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 py-2 px-4 text-center text-slate-950 text-xs font-black tracking-wide">
-        🚀 Zero Infrastructure Cost Demo • Vercel Free + Supabase Free + WhatsApp Click-to-Chat ($0/mo)
+      <div className="bg-[#241D17] py-2 px-4 text-center text-[#EDE7DF] text-xs font-medium border-b border-[#2E241C]">
+        <span className="inline-flex items-center gap-1.5 font-bold text-[#D4AD85]">☕ Artisan Hospitality Tech</span> • Contactless Table QR • Kitchen KDS • WhatsApp Invoicing & Loyalty
       </div>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12 lg:py-16 space-y-16">
         {/* Hero Section */}
         <div className="text-center max-w-3xl mx-auto space-y-4">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-900 border border-slate-800 text-amber-400 text-xs font-extrabold shadow-sm">
-            <Sparkles className="w-3.5 h-3.5" />
-            Reusable Multi-Tenant Restaurant SaaS
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#1C1713] border border-[#2B221A] text-[#D4AD85] text-xs font-semibold shadow-xs">
+            <Sparkles className="w-3.5 h-3.5 text-[#C29B72]" />
+            Contemporary Cafe & Restaurant Management
           </div>
 
-          <h1 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight">
-            Frictionless QR Ordering + Digital Billing +{' '}
-            <span className="bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">
+          <h1 className="text-3xl sm:text-5xl font-bold tracking-tight leading-tight text-[#EDE7DF]">
+            Frictionless QR Ordering + Live Kitchen +{' '}
+            <span className="bg-gradient-to-r from-[#EDE7DF] via-[#D4AD85] to-[#C29B72] bg-clip-text text-transparent">
               WhatsApp Birthday Club
             </span>
           </h1>
 
-          <p className="text-sm sm:text-base text-slate-400 leading-relaxed max-w-2xl mx-auto">
-            Customers order from their table in seconds with <strong>zero app downloads, no accounts, and no registration forms</strong>. Cafe staff receive orders live, generate bills, capture phone numbers, and send receipts via WhatsApp Click-to-Chat.
+          <p className="text-sm sm:text-base text-[#A89887] leading-relaxed max-w-2xl mx-auto">
+            Guests order from their table in seconds with <strong className="text-[#EDE7DF]">zero app downloads, no accounts, and no friction</strong>. Your team receives orders live in the backoffice, generates bills, captures customer numbers, and sends receipts via WhatsApp Click-to-Chat.
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
             <Link
               href="/admin/orders"
-              className="px-6 py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-sm flex items-center gap-2 shadow-lg shadow-amber-500/25 transition-all"
+              className="px-6 py-3.5 rounded-2xl bg-[#C29B72] hover:bg-[#B38A5F] text-[#14110E] font-bold text-sm flex items-center gap-2 shadow-lg shadow-[#C29B72]/20 transition-all cursor-pointer"
             >
               <UtensilsCrossed className="w-4 h-4" />
-              <span>Open Admin Kitchen Portal</span>
+              <span>Open Kitchen Backoffice</span>
             </Link>
 
             <Link
               href="/r/quick-bite/t/01"
-              className="px-6 py-3.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm border border-slate-700 flex items-center gap-2 transition-all"
+              className="px-6 py-3.5 rounded-2xl bg-[#1C1713] hover:bg-[#241D17] text-[#EDE7DF] font-semibold text-sm border border-[#2B221A] flex items-center gap-2 transition-all cursor-pointer"
             >
-              <span>Customer Table 01 Menu</span>
-              <ArrowRight className="w-4 h-4" />
+              <span>Guest Table 01 Menu</span>
+              <ArrowRight className="w-4 h-4 text-[#A89887]" />
             </Link>
           </div>
         </div>
 
         {/* Live Pitch Demonstration Box */}
-        <div className="rounded-3xl bg-slate-900/90 border border-slate-800 p-6 sm:p-10 shadow-2xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="rounded-3xl bg-[#1C1713] border border-[#2B221A] p-6 sm:p-10 shadow-2xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-[#C29B72]/5 rounded-full blur-3xl pointer-events-none" />
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             {/* Left QR Code Scan Box */}
-            <div className="lg:col-span-5 flex flex-col items-center text-center p-6 bg-slate-950 rounded-3xl border border-slate-800/80 shadow-inner">
-              <div className="w-10 h-10 rounded-2xl bg-amber-500 text-slate-950 flex items-center justify-center mb-2 font-black text-lg">
+            <div className="lg:col-span-5 flex flex-col items-center text-center p-6 bg-[#14110E] rounded-3xl border border-[#2B221A] shadow-inner">
+              <div className="w-10 h-10 rounded-2xl bg-[#C29B72]/20 border border-[#C29B72]/40 text-[#D4AD85] flex items-center justify-center mb-2 font-bold text-lg">
                 ☕
               </div>
-              <h2 className="text-base font-black text-white">Scan from your Phone</h2>
-              <p className="text-xs text-slate-400 mt-0.5">Quick Bite Cafe • Table 01</p>
+              <h2 className="text-base font-bold text-[#EDE7DF]">Scan with your Phone</h2>
+              <p className="text-xs text-[#A89887] mt-0.5">Quick Bite Cafe • Table 01</p>
 
-              <div className="my-4 p-4 bg-white rounded-2xl shadow-md border border-slate-200 inline-block">
+              <div className="my-4 p-4 bg-white rounded-2xl shadow-md border border-[#EAE3D8] inline-block">
                 <ClientQRCode path={table01Path} size={180} level="M" />
               </div>
 
-              <span className="text-xs font-bold text-amber-400">
-                Point phone camera at screen to test
+              <span className="text-xs font-semibold text-[#D4AD85]">
+                Point camera at screen to test
               </span>
-              <p className="text-[11px] text-slate-400 mt-1 max-w-xs font-mono break-all">
+              <p className="text-[11px] text-[#A89887] mt-1 max-w-xs font-mono break-all">
                 {table01DisplayUrl}
               </p>
 
@@ -96,57 +96,57 @@ export default function HomePage() {
                 href={table01Path}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-3 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold flex items-center gap-1.5 transition-colors"
+                className="mt-3 px-4 py-2 rounded-xl bg-[#241D17] hover:bg-[#2B221A] text-[#EDE7DF] text-xs font-semibold border border-[#2B221A] flex items-center gap-1.5 transition-colors"
               >
-                <span>Launch Table 01 on Web</span>
+                <span>Launch Table 01 in Browser</span>
                 <ExternalLink className="w-3.5 h-3.5" />
               </a>
             </div>
 
             {/* Right Flow Description */}
             <div className="lg:col-span-7 space-y-4">
-              <span className="text-xs font-black uppercase tracking-wider text-amber-400">
-                How The 2-Minute Live Pitch Works
+              <span className="text-xs font-bold uppercase tracking-wider text-[#D4AD85]">
+                Hospitality Experience Workflow
               </span>
-              <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight">
-                End-to-End Live Transaction Flow
+              <h3 className="text-xl sm:text-2xl font-bold text-[#EDE7DF] tracking-tight">
+                End-to-End Service Flow
               </h3>
 
               <div className="space-y-3 pt-2">
                 {[
                   {
                     step: '1',
-                    title: 'Customer Scans Table QR Code',
-                    desc: 'Menu opens instantly with veg filter, food photos, and prices. No login required.',
+                    title: 'Guest Scans Table QR Standee',
+                    desc: 'Menu opens instantly with warm photography, veg filters, and clear pricing. Zero app install or registration.',
                   },
                   {
                     step: '2',
-                    title: 'Customer Places Order',
-                    desc: 'Cart items are submitted. Live order appears in Admin Kitchen with an audio chime.',
+                    title: 'Guest Submits Table Order',
+                    desc: 'Selected dishes are sent directly to the Kitchen KDS with soft chime and live table identification.',
                   },
                   {
                     step: '3',
                     title: 'Staff Generates Digital Bill',
-                    desc: 'Staff asks customer for Name + WhatsApp number. Customer is automatically saved to CRM database.',
+                    desc: 'Cashier prompts for guest name and WhatsApp. Guest details automatically save to your recurring CRM.',
                   },
                   {
                     step: '4',
-                    title: '1-Click WhatsApp Bill Dispatch',
-                    desc: 'Staff clicks "Send WhatsApp Bill". WhatsApp opens with formatted itemized receipt pre-filled!',
+                    title: 'WhatsApp Invoice Dispatch',
+                    desc: 'Click "Send WhatsApp Bill". WhatsApp opens with itemized digital bill and cafe branding pre-filled.',
                   },
                   {
                     step: '5',
-                    title: 'Birthday Club 7-Day Automatic Detection',
-                    desc: 'Customer joins Birthday Club. System automatically flags upcoming birthdays every year.',
+                    title: 'Birthday Club Recurring Automation',
+                    desc: 'Guest enrolls in Birthday Club. System flags upcoming celebrations 7 days ahead for annual treats.',
                   },
                 ].map((item) => (
                   <div key={item.step} className="flex items-start gap-3">
-                    <div className="w-6 h-6 rounded-lg bg-amber-500/20 text-amber-400 font-black text-xs flex items-center justify-center shrink-0 mt-0.5 border border-amber-500/30">
+                    <div className="w-6 h-6 rounded-lg bg-[#C29B72]/15 text-[#D4AD85] font-bold text-xs flex items-center justify-center shrink-0 mt-0.5 border border-[#C29B72]/30">
                       {item.step}
                     </div>
                     <div>
-                      <h4 className="text-xs font-black text-white">{item.title}</h4>
-                      <p className="text-[11px] text-slate-400 leading-relaxed">{item.desc}</p>
+                      <h4 className="text-xs font-bold text-[#EDE7DF]">{item.title}</h4>
+                      <p className="text-[11px] text-[#A89887] leading-relaxed">{item.desc}</p>
                     </div>
                   </div>
                 ))}
@@ -157,46 +157,46 @@ export default function HomePage() {
 
         {/* Multi-Tenant Demo Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 space-y-3">
+          <div className="p-6 rounded-3xl bg-[#1C1713] border border-[#2B221A] space-y-3 shadow-xl">
             <div className="flex items-center justify-between">
-              <h3 className="text-base font-black text-white">Pilot 1: Quick Bite Cafe</h3>
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-500/20 text-amber-400">
+              <h3 className="text-base font-bold text-[#EDE7DF]">Outlet 1: Quick Bite Cafe</h3>
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#C29B72]/15 text-[#D4AD85] border border-[#C29B72]/30">
                 Primary Demo
               </span>
             </div>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Fast-casual menu with Burgers, Pizzas, Fries, Shakes, and Desserts. Configured with 5% GST and WhatsApp templates.
+            <p className="text-xs text-[#A89887] leading-relaxed">
+              Fast-casual menu with Burgers, Artisanal Pizzas, Cold Brews, and Pastries. Configured with 5% GST and WhatsApp receipts.
             </p>
             <div className="pt-2 flex items-center gap-2">
               <Link
                 href="/r/quick-bite/t/01"
-                className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs"
+                className="px-4 py-2 rounded-xl bg-[#C29B72] hover:bg-[#B38A5F] text-[#14110E] font-bold text-xs shadow-md shadow-[#C29B72]/20"
               >
                 Table 01 Menu →
               </Link>
               <Link
                 href="/admin"
-                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs"
+                className="px-4 py-2 rounded-xl bg-[#241D17] hover:bg-[#2B221A] text-[#EDE7DF] font-semibold text-xs border border-[#2B221A]"
               >
-                Admin Portal
+                Backoffice Portal
               </Link>
             </div>
           </div>
 
-          <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 space-y-3">
+          <div className="p-6 rounded-3xl bg-[#1C1713] border border-[#2B221A] space-y-3 shadow-xl">
             <div className="flex items-center justify-between">
-              <h3 className="text-base font-black text-white">Pilot 2: Urban Brew Co.</h3>
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-blue-500/20 text-blue-400">
+              <h3 className="text-base font-bold text-[#EDE7DF]">Outlet 2: Urban Brew Co.</h3>
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#5F7A62]/15 text-[#9BB89E] border border-[#5F7A62]/30">
                 Multi-Tenant Proof
               </span>
             </div>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Second cafe on the exact same codebase. Proves strict data isolation between restaurants without rebuilding!
+            <p className="text-xs text-[#A89887] leading-relaxed">
+              Second restaurant on the exact same codebase. Validates strict data isolation between multiple cafe brands.
             </p>
             <div className="pt-2 flex items-center gap-2">
               <Link
                 href="/r/urban-brew/t/01"
-                className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs"
+                className="px-4 py-2 rounded-xl bg-[#241D17] hover:bg-[#2B221A] text-[#EDE7DF] font-semibold text-xs border border-[#2B221A]"
               >
                 Urban Brew Menu →
               </Link>
@@ -204,24 +204,24 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Free Tier Guarantees Footer */}
-        <div className="pt-8 border-t border-slate-800/80 text-center space-y-2">
-          <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-bold text-slate-400">
-            <span className="flex items-center gap-1.5 text-emerald-400">
-              <ShieldCheck className="w-4 h-4" /> Vercel Free Tier ($0/mo)
+        {/* Guarantees Footer */}
+        <div className="pt-8 border-t border-[#2B221A] text-center space-y-2">
+          <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-semibold text-[#A89887]">
+            <span className="flex items-center gap-1.5 text-[#9BB89E]">
+              <ShieldCheck className="w-4 h-4" /> Vercel Cloud Architecture
             </span>
-            <span className="flex items-center gap-1.5 text-emerald-400">
-              <ShieldCheck className="w-4 h-4" /> Supabase Free Tier ($0/mo)
+            <span className="flex items-center gap-1.5 text-[#9BB89E]">
+              <ShieldCheck className="w-4 h-4" /> Supabase Realtime DB
             </span>
-            <span className="flex items-center gap-1.5 text-emerald-400">
-              <ShieldCheck className="w-4 h-4" /> WhatsApp Click-to-Chat ($0/mo)
+            <span className="flex items-center gap-1.5 text-[#9BB89E]">
+              <ShieldCheck className="w-4 h-4" /> WhatsApp Click-to-Chat
             </span>
-            <span className="flex items-center gap-1.5 text-emerald-400">
-              <ShieldCheck className="w-4 h-4" /> Open-Source QR Generation ($0/mo)
+            <span className="flex items-center gap-1.5 text-[#9BB89E]">
+              <ShieldCheck className="w-4 h-4" /> Frictionless QR Ordering
             </span>
           </div>
-          <p className="text-[11px] text-slate-500">
-            Pitch freely to hundreds of cafes without incurring monthly software subscriptions.
+          <p className="text-[11px] text-[#7A6B5D]">
+            Contemporary cafe management designed for seamless staff execution and delighted guests.
           </p>
         </div>
       </div>

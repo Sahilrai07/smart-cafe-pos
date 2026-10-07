@@ -1,22 +1,26 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { cafeStore, subscribeToStore } from '@/lib/store';
+import { supabaseService } from '@/lib/services/supabaseService';
+import { cafeStore } from '@/lib/store';
 import { Offer, Restaurant, Customer, TargetAudience } from '@/types';
 import { buildPromoWhatsAppUrl } from '@/lib/whatsapp';
 import {
   Tag,
   Plus,
   Send,
-  Users,
-  Calendar,
   Sparkles,
-  MessageSquare,
+  Users,
+  CheckCircle2,
+  X,
+  Target,
+  Clock,
+  RefreshCw,
 } from 'lucide-react';
 
 export default function AdminOffersPage() {
-  const [offers, setOffers] = useState<Offer[]>([]);
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
+  const [offers, setOffers] = useState<Offer[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
 
@@ -25,26 +29,33 @@ export default function AdminOffersPage() {
   const [message, setMessage] = useState('');
   const [targetAudience, setTargetAudience] = useState<TargetAudience>('ALL');
 
-  const refreshData = () => {
-    const rId = cafeStore.getActiveRestaurantId();
-    const r = cafeStore.getRestaurantById(rId);
-    setRestaurant(r || null);
-    if (r) {
-      setOffers(cafeStore.getOffers(r.id));
-      setCustomers(cafeStore.getCustomers(r.id));
+  const refreshData = async () => {
+    try {
+      const rId = cafeStore.getActiveRestaurantId();
+      const r = (await supabaseService.getRestaurantById(rId)) || (await supabaseService.getAllRestaurants())[0];
+      setRestaurant(r || null);
+      if (r) {
+        const [offList, custList] = await Promise.all([
+          supabaseService.getOffers(r.id),
+          supabaseService.getCustomers(r.id),
+        ]);
+        setOffers(offList);
+        setCustomers(custList);
+      }
+    } catch (e) {
+      console.error('Error loading offers:', e);
     }
   };
 
   useEffect(() => {
     refreshData();
-    return subscribeToStore(refreshData);
   }, []);
 
-  const handleCreateOffer = (e: React.FormEvent) => {
+  const handleCreateOffer = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!restaurant || !title || !message) return;
 
-    cafeStore.createOffer({
+    await supabaseService.createOffer({
       restaurant_id: restaurant.id,
       title,
       message,
@@ -56,7 +67,7 @@ export default function AdminOffersPage() {
     setTitle('');
     setMessage('');
     setIsCreateOpen(false);
-    refreshData();
+    await refreshData();
   };
 
   const handleSendToCustomer = (customer: Customer, offerText: string) => {

@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { cafeStore, subscribeToStore } from '@/lib/store';
+import { supabaseService } from '@/lib/services/supabaseService';
+import { cafeStore } from '@/lib/store';
 import { Customer, Restaurant, RestaurantSettings, UpcomingBirthday } from '@/types';
 import { formatBirthdayDisplay } from '@/lib/birthday';
 import { buildBirthdayWhatsAppUrl } from '@/lib/whatsapp';
@@ -24,27 +25,32 @@ export default function AdminBirthdayClubPage() {
   const [allClubMembers, setAllClubMembers] = useState<Customer[]>([]);
   const [reminderDays, setReminderDays] = useState(7);
 
-  const refreshData = () => {
-    const rId = cafeStore.getActiveRestaurantId();
-    const r = cafeStore.getRestaurantById(rId);
-    setRestaurant(r || null);
-    if (r) {
-      const s = cafeStore.getSettings(r.id);
-      setSettings(s);
-      setReminderDays(s.birthday_days_before || 7);
+  const refreshData = async () => {
+    try {
+      const rId = cafeStore.getActiveRestaurantId();
+      const r = (await supabaseService.getRestaurantById(rId)) || (await supabaseService.getAllRestaurants())[0];
+      setRestaurant(r || null);
+      if (r) {
+        const s = await supabaseService.getSettings(r.id);
+        setSettings(s);
+        const days = s.birthday_days_before || 7;
+        setReminderDays(days);
 
-      // Get upcoming birthdays calculated annually
-      const upcoming = cafeStore.getUpcomingBirthdays(r.id, s.birthday_days_before || 7);
-      setUpcomingBirthdays(upcoming);
-
-      const all = cafeStore.getCustomers(r.id).filter((c) => c.birthday_club_member);
-      setAllClubMembers(all);
+        // Get upcoming birthdays calculated annually from real Supabase DB
+        const [upcoming, customers] = await Promise.all([
+          supabaseService.getUpcomingBirthdays(r.id, days),
+          supabaseService.getCustomers(r.id),
+        ]);
+        setUpcomingBirthdays(upcoming);
+        setAllClubMembers(customers.filter((c) => c.birthday_club_member));
+      }
+    } catch (e) {
+      console.error('Error refreshing birthday data:', e);
     }
   };
 
   useEffect(() => {
     refreshData();
-    return subscribeToStore(refreshData);
   }, []);
 
   const handleSendBirthdayGreeting = (bday: UpcomingBirthday) => {
@@ -59,11 +65,11 @@ export default function AdminBirthdayClubPage() {
     window.open(url, '_blank');
   };
 
-  const handleUpdateReminderDays = (days: number) => {
+  const handleUpdateReminderDays = async (days: number) => {
     if (!restaurant) return;
     setReminderDays(days);
-    cafeStore.updateSettings(restaurant.id, { birthday_days_before: days });
-    refreshData();
+    await supabaseService.updateSettings(restaurant.id, { birthday_days_before: days });
+    await refreshData();
   };
 
   return (
@@ -72,26 +78,26 @@ export default function AdminBirthdayClubPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-black text-white tracking-tight">
+            <h1 className="text-2xl font-bold text-[#EDE7DF] tracking-tight">
               Birthday Club Engine
             </h1>
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-rose-500/20 text-rose-400 border border-rose-500/30">
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#B35C4A]/15 text-[#DF9182] border border-[#B35C4A]/30">
               Recurring Annual Automation
             </span>
           </div>
-          <p className="text-xs text-slate-400 mt-1">
-            Detects upcoming birthdays automatically every year • WhatsApp Click-to-Chat greetings
+          <p className="text-xs text-[#A89887] mt-1">
+            Detects upcoming birthdays automatically every year • WhatsApp Click-to-Chat greetings • {restaurant?.name}
           </p>
         </div>
 
         {/* Reminder Days Selector */}
-        <div className="flex items-center gap-2 bg-slate-950 p-1.5 rounded-2xl border border-slate-800">
-          <Clock className="w-4 h-4 text-amber-400 ml-2" />
-          <span className="text-xs text-slate-300 font-bold">Reminder Window:</span>
+        <div className="flex items-center gap-2 bg-[#1C1713] p-1.5 rounded-2xl border border-[#2B221A]">
+          <Clock className="w-4 h-4 text-[#D4AD85] ml-2" />
+          <span className="text-xs text-[#A89887] font-semibold">Reminder Window:</span>
           <select
             value={reminderDays}
             onChange={(e) => handleUpdateReminderDays(parseInt(e.target.value, 10))}
-            className="bg-slate-900 text-amber-400 border border-slate-700 rounded-xl px-2.5 py-1 text-xs font-black focus:outline-hidden"
+            className="bg-[#14110E] text-[#D4AD85] border border-[#2B221A] rounded-xl px-2.5 py-1 text-xs font-semibold focus:outline-hidden focus:border-[#C29B72]"
           >
             <option value={3}>3 Days Ahead</option>
             <option value={5}>5 Days Ahead</option>
@@ -104,63 +110,63 @@ export default function AdminBirthdayClubPage() {
 
       {/* Overview Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="p-5 rounded-3xl bg-slate-950 border border-slate-800 flex items-center justify-between">
+        <div className="p-5 rounded-3xl bg-[#1C1713] border border-[#2B221A] flex items-center justify-between shadow-xl">
           <div>
-            <span className="text-xs font-bold text-slate-400">Upcoming Birthdays</span>
-            <div className="text-3xl font-black text-rose-400 mt-1">
+            <span className="text-xs font-semibold text-[#A89887]">Upcoming Birthdays</span>
+            <div className="text-3xl font-bold text-[#DF9182] mt-1">
               {upcomingBirthdays.length}
             </div>
-            <span className="text-[10px] text-slate-500">In the next {reminderDays} days</span>
+            <span className="text-[10px] text-[#7A6B5D]">In the next {reminderDays} days</span>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-rose-500/15 text-rose-400 flex items-center justify-center font-bold">
+          <div className="w-12 h-12 rounded-2xl bg-[#B35C4A]/15 text-[#DF9182] border border-[#B35C4A]/30 flex items-center justify-center font-bold">
             <Cake className="w-6 h-6" />
           </div>
         </div>
 
-        <div className="p-5 rounded-3xl bg-slate-950 border border-slate-800 flex items-center justify-between">
+        <div className="p-5 rounded-3xl bg-[#1C1713] border border-[#2B221A] flex items-center justify-between shadow-xl">
           <div>
-            <span className="text-xs font-bold text-slate-400">Total Club Members</span>
-            <div className="text-3xl font-black text-white mt-1">{allClubMembers.length}</div>
-            <span className="text-[10px] text-slate-500">Enrolled customers with DOB</span>
+            <span className="text-xs font-semibold text-[#A89887]">Total Club Members</span>
+            <div className="text-3xl font-bold text-[#EDE7DF] mt-1">{allClubMembers.length}</div>
+            <span className="text-[10px] text-[#7A6B5D]">Enrolled customers with DOB</span>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-amber-500/15 text-amber-400 flex items-center justify-center font-bold">
+          <div className="w-12 h-12 rounded-2xl bg-[#C29B72]/15 text-[#D4AD85] border border-[#C29B72]/30 flex items-center justify-center font-bold">
             <Users className="w-6 h-6" />
           </div>
         </div>
 
-        <div className="p-5 rounded-3xl bg-slate-950 border border-slate-800 flex items-center justify-between">
+        <div className="p-5 rounded-3xl bg-[#1C1713] border border-[#2B221A] flex items-center justify-between shadow-xl">
           <div>
-            <span className="text-xs font-bold text-slate-400">Active Birthday Offer</span>
-            <div className="text-xs font-black text-amber-400 line-clamp-2 mt-1.5">
+            <span className="text-xs font-semibold text-[#A89887]">Active Birthday Offer</span>
+            <div className="text-xs font-semibold text-[#D4AD85] line-clamp-2 mt-1.5">
               {settings?.birthday_offer_text || 'Complimentary dessert or 15% OFF'}
             </div>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-purple-500/15 text-purple-400 flex items-center justify-center font-bold shrink-0">
+          <div className="w-12 h-12 rounded-2xl bg-[#5F7A62]/15 text-[#9BB89E] border border-[#5F7A62]/30 flex items-center justify-center font-bold shrink-0">
             <Gift className="w-6 h-6" />
           </div>
         </div>
       </div>
 
-      {/* Upcoming Birthdays Section (THE CORE PITCH DEMO!) */}
-      <div className="bg-slate-950 rounded-3xl border border-slate-800 p-6 space-y-4">
+      {/* Upcoming Birthdays Section */}
+      <div className="bg-[#1C1713] rounded-3xl border border-[#2B221A] p-6 space-y-4 shadow-xl">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-amber-400" />
-            <h2 className="text-lg font-black text-white">
-              Upcoming Birthdays (Next {reminderDays} Days)
+            <Sparkles className="w-5 h-5 text-[#D4AD85]" />
+            <h2 className="text-base font-bold text-[#EDE7DF]">
+              Upcoming Celebrations (Next {reminderDays} Days)
             </h2>
           </div>
-          <span className="text-xs text-slate-400">
-            {upcomingBirthdays.length} customer(s) eligible today
+          <span className="text-xs text-[#A89887]">
+            {upcomingBirthdays.length} guest(s) eligible today
           </span>
         </div>
 
         {upcomingBirthdays.length === 0 ? (
-          <div className="py-10 text-center bg-slate-900/40 rounded-2xl border border-slate-800/80">
-            <Cake className="w-8 h-8 text-slate-600 mx-auto mb-2" />
-            <p className="text-xs font-bold text-slate-400">No birthdays in the next {reminderDays} days</p>
-            <p className="text-[11px] text-slate-500 mt-0.5">
-              Tip: When testing, set customer birthday to 7 days from today to see them appear here instantly!
+          <div className="py-10 text-center bg-[#241D17] rounded-2xl border border-[#2B221A]">
+            <Cake className="w-8 h-8 text-[#7A6B5D] mx-auto mb-2" />
+            <p className="text-xs font-semibold text-[#EDE7DF]">No birthdays in the next {reminderDays} days</p>
+            <p className="text-[11px] text-[#A89887] mt-0.5">
+              Tip: When testing, set guest birthday within {reminderDays} days to see them appear here instantly!
             </p>
           </div>
         ) : (
@@ -168,22 +174,22 @@ export default function AdminBirthdayClubPage() {
             {upcomingBirthdays.map((bday) => (
               <div
                 key={bday.customer_id}
-                className="p-5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-rose-500/50 transition-all flex flex-col justify-between space-y-4"
+                className="p-5 rounded-2xl bg-[#241D17] border border-[#2B221A] hover:border-[#C29B72]/40 transition-all flex flex-col justify-between space-y-4"
               >
                 <div>
                   <div className="flex items-start justify-between">
                     <div>
-                      <h3 className="text-base font-black text-white flex items-center gap-2">
+                      <h3 className="text-base font-bold text-[#EDE7DF] flex items-center gap-2">
                         {bday.name}
                         <span className="text-lg">🎂</span>
                       </h3>
-                      <p className="text-xs text-slate-400 font-mono mt-0.5">{bday.phone}</p>
+                      <p className="text-xs text-[#A89887] font-mono mt-0.5">{bday.phone}</p>
                     </div>
 
                     <div className="text-right">
-                      <span className="px-3 py-1 rounded-full text-xs font-black bg-rose-500 text-white shadow-xs">
+                      <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#B35C4A]/20 text-[#DF9182] border border-[#B35C4A]/30">
                         {bday.days_until === 0
-                          ? '🎉 Today!'
+                          ? 'Today!'
                           : bday.days_until === 1
                           ? 'Tomorrow!'
                           : `${bday.days_until} days away`}
@@ -191,12 +197,12 @@ export default function AdminBirthdayClubPage() {
                     </div>
                   </div>
 
-                  <div className="mt-3 p-3 bg-slate-950 rounded-xl border border-slate-800/80 flex items-center justify-between text-xs">
-                    <span className="text-slate-400 flex items-center gap-1.5">
-                      <Calendar className="w-3.5 h-3.5 text-rose-400" />
+                  <div className="mt-3 p-3 bg-[#1C1713] rounded-xl border border-[#2B221A] flex items-center justify-between text-xs">
+                    <span className="text-[#A89887] flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5 text-[#DF9182]" />
                       Birthday Date:
                     </span>
-                    <span className="font-bold text-white">
+                    <span className="font-semibold text-[#EDE7DF]">
                       {formatBirthdayDisplay(bday.birthday)}
                     </span>
                   </div>
@@ -204,10 +210,10 @@ export default function AdminBirthdayClubPage() {
 
                 <button
                   onClick={() => handleSendBirthdayGreeting(bday)}
-                  className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white font-black text-xs flex items-center justify-center gap-2 shadow-md shadow-rose-500/20 active:scale-95 transition-all"
+                  className="w-full py-2.5 px-4 rounded-xl bg-[#C29B72] hover:bg-[#B38A5F] text-[#14110E] font-bold text-xs flex items-center justify-center gap-2 shadow-md shadow-[#C29B72]/20 active:scale-95 transition-all cursor-pointer"
                 >
                   <Send className="w-3.5 h-3.5" />
-                  <span>Send Birthday WhatsApp Offer</span>
+                  <span>Send Birthday WhatsApp Greeting</span>
                 </button>
               </div>
             ))}
@@ -216,15 +222,15 @@ export default function AdminBirthdayClubPage() {
       </div>
 
       {/* All Birthday Club Members List */}
-      <div className="bg-slate-950 rounded-3xl border border-slate-800 p-6 space-y-4">
-        <h2 className="text-base font-black text-white flex items-center gap-2">
-          <Users className="w-4 h-4 text-amber-400" />
+      <div className="bg-[#1C1713] rounded-3xl border border-[#2B221A] p-6 space-y-4 shadow-xl">
+        <h2 className="text-base font-bold text-[#EDE7DF] flex items-center gap-2">
+          <Users className="w-4 h-4 text-[#D4AD85]" />
           All Birthday Club Members ({allClubMembers.length})
         </h2>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-900/60 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
+            <thead className="bg-[#241D17] text-[#A89887] uppercase text-[10px] font-bold tracking-wider border-b border-[#2B221A]">
               <tr>
                 <th className="p-3">Customer</th>
                 <th className="p-3">Phone</th>
@@ -233,11 +239,11 @@ export default function AdminBirthdayClubPage() {
                 <th className="p-3 text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/80 text-slate-300">
+            <tbody className="divide-y divide-[#2B221A]/80 text-[#EDE7DF]">
               {allClubMembers.map((m) => (
-                <tr key={m.id} className="hover:bg-slate-900/40">
-                  <td className="p-3 font-bold text-white">{m.name}</td>
-                  <td className="p-3 font-mono">{m.phone}</td>
+                <tr key={m.id} className="hover:bg-[#241D17]">
+                  <td className="p-3 font-semibold text-[#EDE7DF]">{m.name}</td>
+                  <td className="p-3 font-mono text-[#A89887]">{m.phone}</td>
                   <td className="p-3">{m.birthday ? formatBirthdayDisplay(m.birthday) : '—'}</td>
                   <td className="p-3 font-bold">{m.total_visits || 1}</td>
                   <td className="p-3 text-right">
@@ -246,7 +252,7 @@ export default function AdminBirthdayClubPage() {
                         const clean = m.phone.replace(/[^\d+]/g, '').replace(/^\+/, '');
                         window.open(`https://wa.me/${clean}`, '_blank');
                       }}
-                      className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-emerald-400 font-bold text-xs"
+                      className="px-2.5 py-1 rounded-lg bg-[#241D17] hover:bg-[#2B221A] text-[#9BB89E] border border-[#2B221A] font-semibold text-xs cursor-pointer"
                     >
                       Chat
                     </button>

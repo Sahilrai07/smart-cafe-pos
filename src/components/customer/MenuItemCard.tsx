@@ -20,45 +20,45 @@ export const MenuItemCard: React.FC<MenuItemCardProps> = ({
 }) => {
   return (
     <div
-      className={`group relative flex items-start justify-between gap-4 p-4 rounded-2xl bg-white border transition-all duration-200 shadow-2xs hover:shadow-md ${
+      className={`group relative flex items-start justify-between gap-4 p-4 rounded-2xl bg-white border transition-all duration-200 shadow-[0_2px_10px_-2px_rgba(40,32,24,0.04)] hover:shadow-[0_8px_24px_-4px_rgba(40,32,24,0.08)] ${
         item.available
-          ? 'border-slate-200/90 hover:border-amber-400/50'
-          : 'border-slate-200 bg-slate-50/60 opacity-60 pointer-events-none'
+          ? 'border-[#EAE3D8] hover:border-[#D4C0A7]'
+          : 'border-[#EAE3D8] bg-[#F8F5F0]/60 opacity-60 pointer-events-none'
       }`}
     >
       <div className="flex-1 min-w-0">
-        {/* Veg/Non-Veg Badge */}
-        <div className="flex items-center gap-2 mb-1.5">
+        {/* Calm Veg/Non-Veg Badge */}
+        <div className="flex items-center gap-1.5 mb-1.5">
           <span
             className={`w-3.5 h-3.5 rounded-xs flex items-center justify-center border ${
               item.is_veg
-                ? 'border-emerald-600 bg-emerald-50'
-                : 'border-red-600 bg-red-50'
+                ? 'border-[#5F7A62] bg-[#EDF3EE]'
+                : 'border-[#B35C4A] bg-[#F9EFEB]'
             }`}
             title={item.is_veg ? 'Vegetarian' : 'Non-Vegetarian'}
           >
             <span
               className={`w-1.5 h-1.5 rounded-full ${
-                item.is_veg ? 'bg-emerald-600' : 'bg-red-600'
+                item.is_veg ? 'bg-[#5F7A62]' : 'bg-[#B35C4A]'
               }`}
             />
           </span>
-          <span className="text-[11px] font-medium text-slate-400">
+          <span className="text-[11px] font-medium text-[#8A796D]">
             {item.is_veg ? 'Vegetarian' : 'Non-Veg'}
           </span>
         </div>
 
         {/* Item Title & Price */}
-        <h3 className="text-base font-bold text-slate-900 tracking-tight leading-snug group-hover:text-amber-950">
+        <h3 className="text-[15px] font-semibold text-[#2A231E] tracking-tight leading-snug group-hover:text-[#694F36] transition-colors">
           {item.name}
         </h3>
-        <p className="text-sm font-bold text-amber-600 mt-1">
+        <p className="text-sm font-bold text-[#8A5C2B] mt-1">
           {formatCurrency(item.price, currency)}
         </p>
 
         {/* Description */}
         {item.description && (
-          <p className="text-xs text-slate-500 mt-1.5 line-clamp-2 leading-relaxed">
+          <p className="text-xs text-[#7A6B60] mt-1.5 line-clamp-2 leading-relaxed font-normal">
             {item.description}
           </p>
         )}
@@ -66,29 +66,29 @@ export const MenuItemCard: React.FC<MenuItemCardProps> = ({
 
       {/* Item Image & Action Button */}
       <div className="relative flex flex-col items-center shrink-0 w-24 sm:w-28">
-        <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden bg-slate-100 border border-slate-100 shadow-2xs">
+        <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden bg-[#F5F0E8] border border-[#EBE3D7] shadow-xs">
           {item.image_url ? (
             <img
               src={item.image_url}
               alt={item.name}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-300"
               loading="lazy"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-slate-300 text-xs font-semibold">
-              Quick Bite
+            <div className="w-full h-full flex items-center justify-center text-[#B0A195] text-xs font-medium">
+              Cafe Special
             </div>
           )}
           {!item.available && (
-            <div className="absolute inset-0 bg-black/50 backdrop-blur-2xs flex items-center justify-center">
-              <span className="text-[10px] uppercase tracking-wider font-extrabold text-white px-2 py-0.5 rounded-full bg-red-500/80">
+            <div className="absolute inset-0 bg-[#1A1512]/60 backdrop-blur-2xs flex items-center justify-center">
+              <span className="text-[10px] uppercase tracking-wider font-bold text-[#FAF8F5] px-2 py-0.5 rounded-full bg-[#B35C4A]/90">
                 Sold Out
               </span>
             </div>
           )}
         </div>
 
-        {/* Quantity Controls */}
+        {/* Quantity Controls - Soft Caramel Stepper */}
         <div className="absolute -bottom-2.5 z-10">
           {item.available && (
             <>
@@ -96,25 +96,25 @@ export const MenuItemCard: React.FC<MenuItemCardProps> = ({
                 <button
                   type="button"
                   onClick={onAdd}
-                  className="flex items-center gap-1 px-4 py-1.5 rounded-full bg-white hover:bg-amber-500 hover:text-white text-amber-600 text-xs font-extrabold uppercase tracking-wider border-2 border-amber-500 shadow-sm active:scale-95 transition-all"
+                  className="flex items-center gap-1 px-3.5 py-1 rounded-full bg-[#FAF7F2] hover:bg-[#C29B72] text-[#69533C] hover:text-[#14110E] text-xs font-bold uppercase tracking-wider border border-[#DDD1C0] hover:border-[#C29B72] shadow-xs active:scale-95 transition-all"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   Add
                 </button>
               ) : (
-                <div className="flex items-center gap-2 px-2 py-1 rounded-full bg-amber-500 text-white text-xs font-bold shadow-md ring-2 ring-white">
+                <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-[#C29B72] text-[#14110E] text-xs font-bold shadow-md ring-2 ring-white">
                   <button
                     type="button"
                     onClick={onRemove}
-                    className="w-5 h-5 flex items-center justify-center rounded-full bg-amber-600/80 hover:bg-amber-700 active:scale-90 transition-colors"
+                    className="w-5 h-5 flex items-center justify-center rounded-full bg-[#A88057] text-[#14110E] hover:bg-[#977149] active:scale-90 transition-colors"
                   >
                     <Minus className="w-3 h-3" />
                   </button>
-                  <span className="w-4 text-center font-extrabold text-sm">{quantity}</span>
+                  <span className="w-4 text-center font-bold text-xs">{quantity}</span>
                   <button
                     type="button"
                     onClick={onAdd}
-                    className="w-5 h-5 flex items-center justify-center rounded-full bg-amber-600/80 hover:bg-amber-700 active:scale-90 transition-colors"
+                    className="w-5 h-5 flex items-center justify-center rounded-full bg-[#A88057] text-[#14110E] hover:bg-[#977149] active:scale-90 transition-colors"
                   >
                     <Plus className="w-3 h-3" />
                   </button>

@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Order, Restaurant, RestaurantSettings, Bill } from '@/types';
-import { cafeStore } from '@/lib/store';
+import { supabaseService } from '@/lib/services/supabaseService';
 import { formatCurrency } from '@/lib/utils';
 import { buildBillWhatsAppUrl } from '@/lib/whatsapp';
 import {
@@ -37,76 +37,90 @@ export const GenerateBillModal: React.FC<GenerateBillModalProps> = ({
   const [customerPhone, setCustomerPhone] = useState(order?.customer_phone || '+91 9876543210');
   const [generatedBill, setGeneratedBill] = useState<Bill | null>(null);
   const [whatsAppUrl, setWhatsAppUrl] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isOpen || !order) return null;
 
   const currency = settings.currency || '₹';
 
-  const handleGenerateAndOpenWhatsApp = (e: React.FormEvent) => {
+  const handleGenerateAndOpenWhatsApp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!customerName || !customerPhone) return;
+    if (!customerName || !customerPhone || isSubmitting) return;
+    setIsSubmitting(true);
 
-    // 1. Generate bill in store (this also upserts the customer into the CRM database!)
-    const bill = cafeStore.generateBill({
-      restaurant_id: restaurant.id,
-      order_id: order.id,
-      customer_name: customerName,
-      customer_phone: customerPhone,
-      subtotal: order.subtotal,
-      tax: order.tax,
-      total: order.total,
-      items: order.items || [],
-      table_number: order.table_number_snapshot || '01',
-    });
+    try {
+      // 1. Generate real bill in Supabase (this also upserts the customer into Supabase CRM!)
+      const bill = await supabaseService.createBill({
+        restaurant_id: restaurant.id,
+        order_id: order.id,
+        customer_name: customerName,
+        customer_phone: customerPhone,
+        subtotal: order.subtotal,
+        tax: order.tax,
+        discount: order.discount || 0,
+        total: order.total,
+        items: order.items || [],
+        table_number: order.table_number_snapshot || '01',
+      });
 
-    // 2. Build personalized WhatsApp click-to-chat URL
-    const url = buildBillWhatsAppUrl({
-      bill,
-      restaurant,
-      settings,
-      customerName,
-      customerPhone,
-      items: order.items || [],
-    });
+      if (!bill) {
+        alert('Failed to generate bill. Please check database connection.');
+        return;
+      }
 
-    setGeneratedBill(bill);
-    setWhatsAppUrl(url);
+      // 2. Build personalized WhatsApp click-to-chat URL with real data
+      const url = buildBillWhatsAppUrl({
+        bill,
+        restaurant,
+        settings,
+        customerName,
+        customerPhone,
+        items: order.items || [],
+      });
 
-    // 3. Mark sent & notify parent
-    cafeStore.markBillWhatsAppSent(bill.id);
-    onSuccess(bill);
+      setGeneratedBill(bill);
+      setWhatsAppUrl(url);
 
-    // 4. Open WhatsApp in new tab/app immediately
-    window.open(url, '_blank');
+      // 3. Mark sent & notify parent
+      await supabaseService.markBillWhatsAppSent(bill.id);
+      onSuccess(bill);
+
+      // 4. Open WhatsApp in new tab/app immediately
+      window.open(url, '_blank');
+    } catch (err) {
+      console.error('Error generating bill:', err);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div
-        className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity"
+        className="fixed inset-0 bg-[#14110E]/70 backdrop-blur-xs transition-opacity"
         onClick={onClose}
       />
 
       <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative w-full max-w-lg rounded-3xl bg-white shadow-2xl overflow-hidden border border-slate-100 animate-in zoom-in-95 duration-200">
+        <div className="relative w-full max-w-lg rounded-3xl bg-[#1C1713] shadow-2xl overflow-hidden border border-[#2B221A] animate-in zoom-in-95 duration-200">
           {/* Header */}
-          <div className="bg-slate-900 p-6 text-white flex items-center justify-between">
+          <div className="bg-[#241D17] p-6 text-[#EDE7DF] flex items-center justify-between border-b border-[#2B221A]">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-bold">
+              <div className="w-10 h-10 rounded-xl bg-[#C29B72]/15 border border-[#C29B72]/30 text-[#D4AD85] flex items-center justify-center font-bold">
                 <Receipt className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-base font-black leading-tight">
+                <h3 className="text-base font-bold leading-tight text-[#EDE7DF]">
                   Generate Bill • Order #{order.order_number}
                 </h3>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-[#A89887]">
                   {order.table_number_snapshot ? `Table ${order.table_number_snapshot}` : 'Takeaway'} • {restaurant.name}
                 </p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="w-8 h-8 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition-colors"
+              className="w-8 h-8 rounded-full bg-[#1C1713] text-[#A89887] hover:text-[#EDE7DF] flex items-center justify-center transition-colors cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
@@ -115,26 +129,26 @@ export const GenerateBillModal: React.FC<GenerateBillModalProps> = ({
           <div className="p-6">
             {generatedBill ? (
               <div className="text-center py-4 space-y-4">
-                <div className="w-14 h-14 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
+                <div className="w-14 h-14 rounded-full bg-[#5F7A62]/15 border border-[#5F7A62]/30 text-[#9BB89E] flex items-center justify-center mx-auto">
                   <CheckCircle2 className="w-8 h-8" />
                 </div>
-                <h4 className="text-lg font-black text-slate-900">
+                <h4 className="text-lg font-bold text-[#EDE7DF]">
                   Bill #{generatedBill.bill_number} Generated!
                 </h4>
-                <p className="text-xs text-slate-600 max-w-xs mx-auto">
-                  Customer <strong>{customerName}</strong> ({customerPhone}) has been automatically added to your Customer Database.
+                <p className="text-xs text-[#A89887] max-w-xs mx-auto">
+                  Customer <strong className="text-[#EDE7DF]">{customerName}</strong> ({customerPhone}) has been automatically added to your Customer Directory.
                 </p>
 
-                <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-left text-xs space-y-2">
+                <div className="p-4 bg-[#241D17] border border-[#2B221A] rounded-2xl text-left text-xs space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-emerald-900 font-bold">Total Amount:</span>
-                    <span className="text-emerald-900 font-extrabold text-sm">
+                    <span className="text-[#A89887] font-medium">Total Amount:</span>
+                    <span className="text-[#D4AD85] font-bold text-sm">
                       {formatCurrency(generatedBill.total, currency)}
                     </span>
                   </div>
-                  <div className="flex justify-between text-slate-500">
-                    <span>WhatsApp Link:</span>
-                    <span className="text-emerald-700 font-semibold">Opened in WhatsApp</span>
+                  <div className="flex justify-between text-[#A89887]">
+                    <span>WhatsApp Dispatch:</span>
+                    <span className="text-[#9BB89E] font-semibold">Opened in WhatsApp</span>
                   </div>
                 </div>
 
@@ -143,14 +157,14 @@ export const GenerateBillModal: React.FC<GenerateBillModalProps> = ({
                     href={whatsAppUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-md shadow-emerald-600/20"
+                    className="w-full py-3 rounded-xl bg-[#5F7A62] hover:bg-[#4E6751] text-[#FAF8F5] text-xs font-semibold flex items-center justify-center gap-2 shadow-md shadow-[#5F7A62]/20 transition-colors"
                   >
                     <Send className="w-4 h-4" />
                     <span>Re-open WhatsApp Bill Message</span>
                   </a>
                   <button
                     onClick={onClose}
-                    className="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold"
+                    className="w-full py-2.5 rounded-xl bg-[#241D17] hover:bg-[#2B221A] text-[#EDE7DF] text-xs font-semibold border border-[#2B221A] transition-colors cursor-pointer"
                   >
                     Done & Return to Orders
                   </button>
@@ -159,68 +173,68 @@ export const GenerateBillModal: React.FC<GenerateBillModalProps> = ({
             ) : (
               <form onSubmit={handleGenerateAndOpenWhatsApp} className="space-y-4">
                 {/* Items preview */}
-                <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80 space-y-1.5 text-xs">
-                  <span className="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider">
+                <div className="bg-[#241D17] p-3.5 rounded-2xl border border-[#2B221A] space-y-1.5 text-xs">
+                  <span className="text-[10px] font-bold uppercase text-[#A89887] tracking-wider">
                     Order Items
                   </span>
                   {order.items?.map((item, idx) => (
-                    <div key={idx} className="flex justify-between text-slate-700">
+                    <div key={idx} className="flex justify-between text-[#EDE7DF]">
                       <span>
                         {item.item_name_snapshot} × {item.quantity}
                       </span>
-                      <span className="font-semibold text-slate-900">
+                      <span className="font-semibold text-[#D4AD85]">
                         {formatCurrency(item.total, currency)}
                       </span>
                     </div>
                   ))}
-                  <div className="flex justify-between font-black text-slate-900 pt-2 border-t border-slate-200 text-sm">
+                  <div className="flex justify-between font-bold text-[#EDE7DF] pt-2 border-t border-[#2B221A] text-sm">
                     <span>Grand Total</span>
-                    <span className="text-amber-600">{formatCurrency(order.total, currency)}</span>
+                    <span className="text-[#D4AD85]">{formatCurrency(order.total, currency)}</span>
                   </div>
                 </div>
 
-                {/* Asking customer for Name & WhatsApp (The Pitch Story!) */}
+                {/* Asking customer for Name & WhatsApp */}
                 <div className="space-y-3 pt-1">
-                  <div className="p-3 bg-amber-50 border border-amber-200/80 rounded-2xl text-xs text-amber-950 flex items-start gap-2">
-                    <Sparkles className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                    <div>
-                      <strong>Ask Customer:</strong> &ldquo;What name should I put on the bill?&rdquo; and &ldquo;Can I have your WhatsApp number for the digital bill?&rdquo;
+                  <div className="p-3 bg-[#241D17] border border-[#2B221A] rounded-2xl text-xs text-[#EDE7DF] flex items-start gap-2">
+                    <Sparkles className="w-4 h-4 text-[#D4AD85] shrink-0 mt-0.5" />
+                    <div className="text-[#A89887]">
+                      <strong className="text-[#EDE7DF]">Staff Prompt:</strong> &ldquo;What name should I put on the bill?&rdquo; and &ldquo;Can I have your WhatsApp number for the digital invoice?&rdquo;
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                    <label className="block text-xs font-semibold text-[#A89887] mb-1">
                       Customer Name *
                     </label>
                     <div className="relative">
-                      <User className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                      <User className="w-4 h-4 text-[#7A6B5D] absolute left-3 top-1/2 -translate-y-1/2" />
                       <input
                         type="text"
                         required
                         value={customerName}
                         onChange={(e) => setCustomerName(e.target.value)}
                         placeholder="e.g. Rahul Sharma"
-                        className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-hidden focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                        className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-[#2B221A] bg-[#14110E] text-xs text-[#EDE7DF] focus:outline-hidden focus:border-[#C29B72]"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                    <label className="block text-xs font-semibold text-[#A89887] mb-1">
                       WhatsApp Mobile Number *
                     </label>
                     <div className="relative">
-                      <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                      <Phone className="w-4 h-4 text-[#7A6B5D] absolute left-3 top-1/2 -translate-y-1/2" />
                       <input
                         type="tel"
                         required
                         value={customerPhone}
                         onChange={(e) => setCustomerPhone(e.target.value)}
                         placeholder="e.g. +91 9876543210"
-                        className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-hidden focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                        className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-[#2B221A] bg-[#14110E] text-xs text-[#EDE7DF] focus:outline-hidden focus:border-[#C29B72]"
                       />
                     </div>
-                    <p className="text-[10px] text-slate-400 mt-1">
+                    <p className="text-[10px] text-[#A89887] mt-1">
                       WhatsApp will open with the pre-filled personalized bill receipt.
                     </p>
                   </div>
@@ -228,7 +242,7 @@ export const GenerateBillModal: React.FC<GenerateBillModalProps> = ({
 
                 <button
                   type="submit"
-                  className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-extrabold text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/25 transition-all mt-3"
+                  className="w-full py-3.5 rounded-2xl bg-[#C29B72] hover:bg-[#B38A5F] text-[#14110E] font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-[#C29B72]/20 transition-all mt-3 cursor-pointer"
                 >
                   <Send className="w-4 h-4" />
                   <span>Generate & Send Bill on WhatsApp</span>

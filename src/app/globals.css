@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #0f172a;
+  --background: #FAF8F5; /* Warm Oat / Milk Foam */
+  --foreground: #2A231E; /* Roasted Espresso Charcoal */
 }
 
 @theme inline {
