@@ -23,7 +23,11 @@ import {
   Layers,
 } from 'lucide-react';
 
+import { useRouter } from 'next/navigation';
+import { getStoredUser } from '@/lib/auth';
+
 export default function SaaSSubscriptionPage() {
+  const router = useRouter();
   const [subscriptions, setSubscriptions] = useState<CafeSubscription[]>([]);
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
@@ -50,8 +54,13 @@ export default function SaaSSubscriptionPage() {
   };
 
   useEffect(() => {
+    const user = getStoredUser();
+    if (user && user.role === 'OWNER') {
+      router.replace('/admin');
+      return;
+    }
     refreshData();
-  }, []);
+  }, [router]);
 
   const handleRegisterCafe = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -46,6 +46,7 @@ import {
 } from './demoData';
 import { getSupabaseClient, isSupabaseConfigured } from './supabase/client';
 import { filterUpcomingBirthdays } from './birthday';
+import { getStoredUser } from './auth';
 
 // Event listener mechanism for local real-time reactivity
 type Listener = () => void;
@@ -148,16 +149,31 @@ class CafeStore {
 
   // --- Restaurant Methods ---
   getActiveRestaurantId(): string {
+    const user = getStoredUser();
+    if (user && user.role === 'OWNER') {
+      return user.restaurantId;
+    }
     return this.activeRestaurantId;
   }
 
   setActiveRestaurantId(id: string) {
-    this.activeRestaurantId = id;
+    const user = getStoredUser();
+    if (user && user.role === 'OWNER') {
+      // Owner is strictly restricted to their own cafe
+      this.activeRestaurantId = user.restaurantId;
+    } else {
+      this.activeRestaurantId = id;
+    }
     this.saveToLocalStorage();
     notifyListeners();
   }
 
   getAllRestaurants(): Restaurant[] {
+    const user = getStoredUser();
+    if (user && user.role === 'OWNER') {
+      // Return only the owner's authorized restaurant
+      return this.restaurants.filter((r) => r.id === user.restaurantId);
+    }
     return this.restaurants;
   }
 
@@ -166,6 +182,10 @@ class CafeStore {
   }
 
   getRestaurantById(id: string): Restaurant | undefined {
+    const user = getStoredUser();
+    if (user && user.role === 'OWNER' && id !== user.restaurantId) {
+      return undefined; // Block access to foreign cafe details
+    }
     return this.restaurants.find((r) => r.id === id);
   }
 

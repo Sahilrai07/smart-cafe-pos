@@ -27,6 +27,7 @@ import {
 import { getSupabaseClient, isSupabaseConfigured } from '@/lib/supabase/client';
 import { cafeStore } from '@/lib/store';
 import { filterUpcomingBirthdays } from '@/lib/birthday';
+import { getStoredUser } from '@/lib/auth';
 
 // Helper to clean phone numbers for matching
 function sanitizePhone(phone: string): string {
@@ -42,7 +43,24 @@ export const supabaseService = {
   // RESTAURANTS
   // --------------------------------------------------------------------------
   async getAllRestaurants(): Promise<Restaurant[]> {
+    const user = getStoredUser();
     const client = getSupabaseClient();
+    
+    // Strict isolation for cafe owners
+    if (user && user.role === 'OWNER') {
+      if (!client) {
+        return cafeStore.getAllRestaurants();
+      }
+      const { data, error } = await client
+        .from('restaurants')
+        .select('*')
+        .eq('id', user.restaurantId);
+      if (error || !data || data.length === 0) {
+        return cafeStore.getAllRestaurants();
+      }
+      return data;
+    }
+
     if (!client) return cafeStore.getAllRestaurants();
 
     const { data, error } = await client
@@ -74,6 +92,12 @@ export const supabaseService = {
   },
 
   async getRestaurantById(id: string): Promise<Restaurant | null> {
+    const user = getStoredUser();
+    // Prevent owner from querying foreign cafe details
+    if (user && user.role === 'OWNER' && id !== user.restaurantId) {
+      return null;
+    }
+
     const client = getSupabaseClient();
     if (!client) return cafeStore.getRestaurantById(id) || null;
 

@@ -32,7 +32,11 @@ import {
   ShieldCheck,
   Crown,
   Coffee,
+  LogOut,
+  Lock,
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { getStoredUser, clearUserSession, CafeUser } from '@/lib/auth';
 
 interface NavLinkItem {
   name: string;
@@ -50,7 +54,9 @@ interface NavSection {
 }
 
 export const AdminSidebar: React.FC = () => {
+  const router = useRouter();
   const pathname = usePathname();
+  const [currentUser, setCurrentUser] = useState<CafeUser | null>(null);
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [activeRestaurantId, setActiveRestaurantId] = useState('');
   const [activeRestaurant, setActiveRestaurant] = useState<Restaurant | null>(null);
@@ -61,6 +67,8 @@ export const AdminSidebar: React.FC = () => {
 
   const refreshData = async () => {
     try {
+      const user = getStoredUser();
+      setCurrentUser(user);
       const all = await supabaseService.getAllRestaurants();
       setRestaurants(all);
       const activeId = cafeStore.getActiveRestaurantId();
@@ -192,26 +200,48 @@ export const AdminSidebar: React.FC = () => {
             </div>
           </div>
 
-          {/* Restaurant Switcher */}
-          <div>
-            <label className="block text-[9px] font-semibold uppercase tracking-wider text-[#8A796D] mb-1">
-              Active Outlet
-            </label>
-            <div className="relative">
-              <select
-                value={activeRestaurantId}
-                onChange={(e) => handleRestaurantSwitch(e.target.value)}
-                className="w-full appearance-none bg-[#201A16] border border-[#322820] text-[#EDE7DF] rounded-xl px-2.5 py-1.5 text-xs font-medium focus:outline-hidden focus:border-[#C29B72] cursor-pointer transition-colors"
-              >
-                {restaurants.map((r) => (
-                  <option key={r.id} value={r.id} className="bg-[#201A16] text-[#EDE7DF]">
-                    {r.name}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="w-3.5 h-3.5 text-[#8A796D] absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+          {/* Outlet Display / Switcher */}
+          {currentUser?.role === 'OWNER' ? (
+            <div>
+              <label className="block text-[9px] font-semibold uppercase tracking-wider text-[#8A796D] mb-1">
+                Active Outlet (Isolated)
+              </label>
+              <div className="bg-[#201A16] border border-[#322820] text-[#EDE7DF] rounded-xl px-2.5 py-2 flex items-center justify-between shadow-xs">
+                <div className="min-w-0 pr-1.5">
+                  <p className="text-xs font-bold text-[#FAF8F5] truncate leading-tight">
+                    {activeRestaurant?.name || currentUser.restaurantName}
+                  </p>
+                  <p className="text-[10px] text-[#C29B72] font-semibold truncate mt-0.5">
+                    {currentUser.name}
+                  </p>
+                </div>
+                <span className="shrink-0 flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400 border border-emerald-500/25">
+                  <Lock className="w-2.5 h-2.5" />
+                  Scoped
+                </span>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div>
+              <label className="block text-[9px] font-semibold uppercase tracking-wider text-[#8A796D] mb-1">
+                Active Outlet (Admin Switcher)
+              </label>
+              <div className="relative">
+                <select
+                  value={activeRestaurantId}
+                  onChange={(e) => handleRestaurantSwitch(e.target.value)}
+                  className="w-full appearance-none bg-[#201A16] border border-[#322820] text-[#EDE7DF] rounded-xl px-2.5 py-1.5 text-xs font-medium focus:outline-hidden focus:border-[#C29B72] cursor-pointer transition-colors"
+                >
+                  {restaurants.map((r) => (
+                    <option key={r.id} value={r.id} className="bg-[#201A16] text-[#EDE7DF]">
+                      {r.name}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="w-3.5 h-3.5 text-[#8A796D] absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Pending Service Requests Alert */}
@@ -248,7 +278,9 @@ export const AdminSidebar: React.FC = () => {
 
         {/* Navigation Sections */}
         <nav className="flex-1 overflow-y-auto p-2.5 space-y-4 text-xs scrollbar-none">
-          {navSections.map((section, sIdx) => (
+          {navSections
+            .filter((sec) => !(currentUser?.role === 'OWNER' && sec.title === 'Platform SaaS'))
+            .map((section, sIdx) => (
             <div key={sIdx} className="space-y-0.5">
               <div className="px-3 text-[9px] font-semibold uppercase tracking-wider text-[#7A6B60] mb-1">
                 {section.title}
@@ -305,15 +337,29 @@ export const AdminSidebar: React.FC = () => {
         <div className="p-3.5 border-t border-[#28211B] bg-[#16120F] space-y-2">
           {activeRestaurant && (
             <a
-              href={`/r/${activeRestaurant.slug}/t/01`}
+              href={`/r/${activeRestaurant.slug}/t/${activeRestaurant.slug === 'urban-brew' ? 'T-01' : '01'}`}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center justify-center gap-2 w-full py-2 px-3 rounded-xl bg-[#201A16] hover:bg-[#28201B] text-[#C29B72] border border-[#322820] text-xs font-semibold transition-colors"
             >
-              <span>View Table 01 Menu</span>
+              <span>View Customer Menu</span>
               <ExternalLink className="w-3.5 h-3.5" />
             </a>
           )}
+
+          {/* Sign Out Button */}
+          <button
+            type="button"
+            onClick={() => {
+              clearUserSession();
+              window.location.href = '/admin/login';
+            }}
+            className="flex items-center justify-center gap-2 w-full py-2 px-3 rounded-xl bg-[#281815] hover:bg-[#341F1B] text-[#DE7F6C] hover:text-[#FFA392] border border-[#44231D] text-xs font-bold transition-all cursor-pointer"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            <span>Sign Out ({currentUser?.username || 'Owner'})</span>
+          </button>
+
           <div className="text-[10px] text-center text-[#75665B]">
             RestroOS • Hospitality Tech
           </div>
