@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { getStoredUser, CafeUser } from '@/lib/auth';
+import { DEFAULT_HERO_LAYOUT, HeroLayoutConfig } from '@/lib/heroLayout';
 import {
   QrCode,
   UtensilsCrossed,
@@ -17,13 +18,28 @@ import {
   BarChart3,
   ChevronDown,
   Boxes,
+  Sliders,
 } from 'lucide-react';
 
 export default function HomePage() {
   const [currentUser, setCurrentUser] = useState<CafeUser | null>(null);
+  const [layout, setLayout] = useState<HeroLayoutConfig>(DEFAULT_HERO_LAYOUT);
 
   useEffect(() => {
     setCurrentUser(getStoredUser());
+
+    async function fetchLayout() {
+      try {
+        const res = await fetch('/api/hero-layout');
+        if (res.ok) {
+          const data = await res.json();
+          setLayout(data);
+        }
+      } catch {
+        // fallback to DEFAULT_HERO_LAYOUT
+      }
+    }
+    fetchLayout();
   }, []);
 
   const demoQrPath = '/r/quick-bite/t/01';
@@ -133,18 +149,28 @@ export default function HomePage() {
       </header>
 
       {/* =========================================================================
-          HERO SECTION: OPTION 1 HIGH-TECH GLASSMORPHISM
-          (Spacious 3-Line Title Flanked by Exact Mockup Floating Cards)
+          HERO SECTION: DYNAMICALLY CONFIGURED FROM /editor
          ========================================================================= */}
-      <section className="relative z-10 pt-6 sm:pt-12 pb-16 sm:pb-24 max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16">
+      <section className="relative z-10 pt-4 sm:pt-8 pb-16 sm:pb-24 max-w-[1440px] mx-auto px-4 sm:px-6">
         
-        {/* DESKTOP LAYOUT (1024px+): Exact Mockup Arrangement & Spacious Composition */}
-        <div className="hidden lg:flex items-center justify-between gap-6 xl:gap-12 min-h-[580px]">
-          
-          {/* LEFT WING: Card 1 (Top Left) & Card 2 (Bottom Left) */}
-          <div className="w-[310px] xl:w-[365px] 2xl:w-[385px] shrink-0 flex flex-col gap-7 justify-center">
-            
-            {/* CARD 1: Contactless QR Table Ordering */}
+        {/* DESKTOP CANVAS (1024px+): Exact Coordinates from Visual Editor */}
+        <div
+          style={{ height: `${layout.canvasHeight}px` }}
+          className="hidden lg:block relative w-full overflow-visible"
+        >
+          {/* CARD 1: Contactless QR Table Ordering */}
+          <div
+            style={{
+              position: 'absolute',
+              left: `${layout.card1.x}px`,
+              top: `${layout.card1.y}px`,
+              width: `${layout.card1.width}px`,
+              transform: `scale(${layout.card1.scale}) rotate(${layout.card1.rotation}deg)`,
+              transformOrigin: 'center center',
+              zIndex: layout.card1.zIndex,
+            }}
+            className="transition-transform duration-300 hover:rotate-0 hover:scale-[1.03]"
+          >
             <Link
               href={demoQrPath}
               target="_blank"
@@ -152,7 +178,7 @@ export default function HomePage() {
               className="group block relative cursor-pointer focus:outline-none"
               title="Click to launch Table 5 Live Digital Menu"
             >
-              <div className="relative rounded-2xl xl:rounded-3xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.85),_0_0_25px_rgba(245,158,11,0.12)] border border-white/[0.08] group-hover:border-[#F59E0B]/50 group-hover:shadow-[0_25px_60px_rgba(0,0,0,0.95),_0_0_35px_rgba(245,158,11,0.3)] transition-all duration-300 transform -rotate-2 group-hover:rotate-0 group-hover:scale-[1.02]">
+              <div className="relative rounded-2xl xl:rounded-3xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.85),_0_0_25px_rgba(245,158,11,0.12)] border border-white/[0.08] group-hover:border-[#F59E0B]/50 group-hover:shadow-[0_25px_60px_rgba(0,0,0,0.95),_0_0_35px_rgba(245,158,11,0.3)] transition-all duration-300">
                 <img
                   src="/designs/card1-qr.png"
                   alt="Contactless QR Table Ordering"
@@ -167,14 +193,27 @@ export default function HomePage() {
                 </div>
               </div>
             </Link>
+          </div>
 
-            {/* CARD 2: Instant Billing Metrics */}
+          {/* CARD 2: Instant Billing Metrics */}
+          <div
+            style={{
+              position: 'absolute',
+              left: `${layout.card2.x}px`,
+              top: `${layout.card2.y}px`,
+              width: `${layout.card2.width}px`,
+              transform: `scale(${layout.card2.scale}) rotate(${layout.card2.rotation}deg)`,
+              transformOrigin: 'center center',
+              zIndex: layout.card2.zIndex,
+            }}
+            className="transition-transform duration-300 hover:rotate-0 hover:scale-[1.03]"
+          >
             <Link
               href="/admin/login"
               className="group block relative cursor-pointer focus:outline-none"
               title="Click to view live analytics in admin portal"
             >
-              <div className="relative rounded-2xl xl:rounded-3xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.85),_0_0_25px_rgba(139,92,246,0.12)] border border-white/[0.08] group-hover:border-[#8B5CF6]/50 group-hover:shadow-[0_25px_60px_rgba(0,0,0,0.95),_0_0_35px_rgba(139,92,246,0.3)] transition-all duration-300 transform -rotate-1 group-hover:rotate-0 group-hover:scale-[1.02]">
+              <div className="relative rounded-2xl xl:rounded-3xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.85),_0_0_25px_rgba(139,92,246,0.12)] border border-white/[0.08] group-hover:border-[#8B5CF6]/50 group-hover:shadow-[0_25px_60px_rgba(0,0,0,0.95),_0_0_35px_rgba(139,92,246,0.3)] transition-all duration-300">
                 <img
                   src="/designs/card2-metrics.png"
                   alt="Instant Billing Metrics"
@@ -191,29 +230,43 @@ export default function HomePage() {
             </Link>
           </div>
 
-          {/* CENTER HERO: HEADLINE (EXACT 3 CLEAN LINES), SUBTITLE, CTAS */}
-          <div className="flex-1 min-w-0 max-w-[620px] xl:max-w-[700px] 2xl:max-w-[760px] text-center px-4 py-4 space-y-6">
-            <h1 className="text-4xl sm:text-5xl lg:text-[48px] xl:text-[58px] 2xl:text-[64px] font-black tracking-tight text-white leading-[1.12] text-center">
-              Next-Gen Operating<br />
-              System for Modern<br />
-              Cafes
+          {/* CENTER HERO: HEADLINE & CTAS (Dynamic Width & Position from Editor) */}
+          <div
+            style={{
+              position: 'absolute',
+              left: `${layout.heroText.x}px`,
+              top: `${layout.heroText.y}px`,
+              width: `${layout.heroText.width}px`,
+              transform: `scale(${layout.heroText.scale}) rotate(${layout.heroText.rotation}deg)`,
+              transformOrigin: 'center center',
+              zIndex: layout.heroText.zIndex,
+            }}
+            className="text-center transition-all duration-300"
+          >
+            <h1
+              style={{
+                fontSize: `${layout.heroText.fontSize}px`,
+                lineHeight: 1.12,
+              }}
+              className="font-black tracking-tight text-white select-none text-center"
+            >
+              Next-Gen Operating System for Modern Cafes
             </h1>
 
-            <p className="text-sm sm:text-base xl:text-lg text-[#A1A1AA] max-w-xl mx-auto leading-relaxed font-normal">
-              Optimize operations, delight customers, and scale your business with the ultimate cloud-based platform for cafes and small restaurants.
+            <p className="text-sm sm:text-base xl:text-lg text-[#A1A1AA] max-w-xl mx-auto leading-relaxed mt-4 font-normal">
+              {layout.heroText.subtitleText}
             </p>
 
-            {/* Glowing CTAs (Request Free Demo & Explore Platform) */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+            <div className="flex items-center justify-center gap-4 pt-6">
               <Link
                 href="/admin/login"
-                className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-[#F59E0B] hover:bg-[#FBBF24] text-[#090A0F] font-black text-xs uppercase tracking-wider shadow-[0_0_35px_rgba(245,158,11,0.55)] transition-all hover:scale-105 active:scale-95 cursor-pointer text-center"
+                className="px-8 py-3.5 rounded-full bg-[#F59E0B] hover:bg-[#FBBF24] text-[#090A0F] font-black text-xs uppercase tracking-wider shadow-[0_0_35px_rgba(245,158,11,0.55)] transition-all hover:scale-105 active:scale-95 cursor-pointer text-center"
               >
                 Request Free Demo
               </Link>
               <a
                 href="#features"
-                className="w-full sm:w-auto px-7 py-3.5 rounded-full bg-[#11131C] hover:bg-[#181B28] text-white font-bold text-xs uppercase tracking-wider border border-white/[0.18] shadow-lg transition-all hover:border-white/40 active:scale-95 cursor-pointer text-center"
+                className="px-7 py-3.5 rounded-full bg-[#11131C] hover:bg-[#181B28] text-white font-bold text-xs uppercase tracking-wider border border-white/[0.18] shadow-lg transition-all hover:border-white/40 active:scale-95 cursor-pointer text-center"
               >
                 Explore Platform
               </a>
@@ -221,13 +274,24 @@ export default function HomePage() {
           </div>
 
           {/* RIGHT WING: Card 3 (Live Kitchen Display KDS Tablet) */}
-          <div className="w-[310px] xl:w-[365px] 2xl:w-[385px] shrink-0 flex items-center justify-center">
+          <div
+            style={{
+              position: 'absolute',
+              left: `${layout.card3.x}px`,
+              top: `${layout.card3.y}px`,
+              width: `${layout.card3.width}px`,
+              transform: `scale(${layout.card3.scale}) rotate(${layout.card3.rotation}deg)`,
+              transformOrigin: 'center center',
+              zIndex: layout.card3.zIndex,
+            }}
+            className="transition-transform duration-300 hover:rotate-0 hover:scale-[1.03]"
+          >
             <Link
               href="/admin/login"
               className="group block relative cursor-pointer w-full focus:outline-none"
               title="Click to launch Live Kitchen Display System (KDS)"
             >
-              <div className="relative rounded-2xl xl:rounded-3xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.85),_0_0_25px_rgba(16,185,129,0.12)] border border-white/[0.08] group-hover:border-emerald-500/50 group-hover:shadow-[0_25px_60px_rgba(0,0,0,0.95),_0_0_35px_rgba(16,185,129,0.3)] transition-all duration-300 transform rotate-2 group-hover:rotate-0 group-hover:scale-[1.02]">
+              <div className="relative rounded-2xl xl:rounded-3xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.85),_0_0_25px_rgba(16,185,129,0.12)] border border-white/[0.08] group-hover:border-emerald-500/50 group-hover:shadow-[0_25px_60px_rgba(0,0,0,0.95),_0_0_35px_rgba(16,185,129,0.3)] transition-all duration-300">
                 <img
                   src="/designs/card3-kitchen.png"
                   alt="Live Kitchen Display (KDS)"
@@ -450,6 +514,18 @@ export default function HomePage() {
           © {new Date().getFullYear()} RestroOS. All cafe tenant workspaces encrypted & strictly isolated.
         </p>
       </footer>
+
+      {/* Floating Quick Action: Open Visual Drag & Drop Editor */}
+      <div className="fixed bottom-6 right-6 z-50">
+        <Link
+          href="/editor"
+          className="group flex items-center gap-2.5 px-5 py-3 rounded-full bg-[#0F111A]/90 hover:bg-[#181B28] border border-[#F59E0B] text-[#F59E0B] font-bold text-xs uppercase tracking-wider shadow-[0_0_30px_rgba(245,158,11,0.45)] backdrop-blur-2xl transition-all hover:scale-105 active:scale-95 cursor-pointer"
+          title="Open Visual Drag & Drop Hero Editor"
+        >
+          <Sliders className="w-4 h-4 text-[#F59E0B] group-hover:rotate-45 transition-transform" />
+          <span>Customize Hero in Editor</span>
+        </Link>
+      </div>
     </div>
   );
 }
